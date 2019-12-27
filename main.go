@@ -17,8 +17,9 @@ func about(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	r := mux.NewRouter()
-	r.HandleFunc("/", index)
 	r.HandleFunc("/about", about)
+	r.HandleFunc("/", index)
+	http.Handle("/", r);
 	fmt.Println("Server Starting...")
 	
 	
