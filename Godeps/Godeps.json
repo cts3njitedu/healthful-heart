@@ -5,5 +5,11 @@
 	"Packages": [
 		"./..."
 	],
-	"Deps": []
+	"Deps": [
+		{
+			"ImportPath": "github.com/gorilla/mux",
+			"Comment": "v1.7.3-15-g49c0148",
+			"Rev": "49c01487a141b49f8ffe06277f3dca3ee80a55fa"
+		}
+	]
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"github.com/gorilla/mux"
 	"os"
 )
 
@@ -15,8 +16,9 @@ func about(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/", index)
-	http.HandleFunc("/about", about)
+	r := mux.NewRouter()
+	r.HandleFunc("/", index)
+	r.HandleFunc("/about", about)
 	fmt.Println("Server Starting...")
 	
 	
