@@ -2,9 +2,6 @@
 	"ImportPath": "github.com/cts3njitedu/healthful-heart",
 	"GoVersion": "go1.13",
 	"GodepVersion": "v80",
-	"Packages": [
-		"./..."
-	],
 	"Deps": [
 		{
 			"ImportPath": "cloud.google.com/go/compute/metadata",

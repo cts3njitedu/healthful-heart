@@ -6,11 +6,11 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"io/ioutil"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"golang.org/x/oauth2/jwt"
+	"github.com/joho/godotenv"
 )
 
 // Retrieve a token, saves the token, then returns the generated client.
@@ -70,16 +70,39 @@ func saveToken(path string, token *oauth2.Token) {
 
 func GetClient() (*http.Client,error){
 	
-	b, err := ioutil.ReadFile("credentials.json")
-    if err != nil {
-        return nil, err
-    }
+	// b, err := ioutil.ReadFile("credentials.json")
+    // if err != nil {
+    //     return nil, err
+    // }
 	var c = struct {
         Email      string `json:"client_email"`
         PrivateKey string `json:"private_key"`
     }{}
 
-	json.Unmarshal(b, &c)
+
+	// json.Unmarshal(b, &c)
+	if err:= godotenv.Load(); err != nil {
+		fmt.Println("Loading from environment variables on system")
+		email,exists := os.LookupEnv("CLIENT_EMAIL")
+		if exists {
+			c.Email = email
+		}
+		private_key, exists := os.LookupEnv("PRIVATE_KEY")
+		if exists {
+			c.PrivateKey = private_key
+		}
+	} else {
+		fmt.Println("Loading locally...")
+		email,exists := os.LookupEnv("CLIENT_EMAIL")
+		if exists {
+			c.Email = email
+		}
+		private_key, exists := os.LookupEnv("PRIVATE_KEY")
+		if exists {
+			c.PrivateKey = private_key
+		}
+	}
+
     config := &jwt.Config{
         Email:      c.Email,
         PrivateKey: []byte(c.PrivateKey),
@@ -90,9 +113,6 @@ func GetClient() (*http.Client,error){
 	}
 	
 	client := config.Client(oauth2.NoContext);
-    if err != nil {
-        return nil, err
-	}
 	
     return client, nil
 
