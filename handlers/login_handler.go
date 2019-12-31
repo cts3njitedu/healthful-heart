@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 	"encoding/json"
-	
+	"github.com/cts3njitedu/healthful-heart/repositories/mongorepo"
 )
 
 type LoginResponse struct {
@@ -12,11 +12,11 @@ type LoginResponse struct {
 }
 
 
-func Login(w http.ResponseWriter, r *http.Request) {
 
-	loginResponse:= LoginResponse {
-		IsError: false,
-		Message: "Login Successful",
-	}
-	json.NewEncoder(w).Encode(loginResponse)
+
+func GetLoginPage(response http.ResponseWriter, request *http.Request) {
+	response.Header().Set("content-type","application/json")
+	page:=mongorepo.GetPage("LOGIN_PAGE")
+	json.NewEncoder(response).Encode(page)
+	
 }
