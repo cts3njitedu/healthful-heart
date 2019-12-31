@@ -21,9 +21,8 @@ func GetPage(pageType string) models.Page {
 	fmt.Println("Retrieving collection...");
 	collection:=db.Collection("Page")
 	filter:=bson.M{"pageType": pageType};
-	fmt.Println("Executing query...");
+	fmt.Printf("Retrieving %s\n",pageType);
 	err=collection.FindOne(context.TODO(), filter).Decode(&result)
-	fmt.Printf("The result is %+v\n",result);
 	if err!= nil {
 		log.Fatal(err);
 	}
