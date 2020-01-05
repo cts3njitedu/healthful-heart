@@ -20,7 +20,7 @@ func GetPage(pageType string) models.Page {
 	db:=client.Database("HealthfulHeartConfig");
 	fmt.Println("Retrieving collection...");
 	collection:=db.Collection("Page")
-	filter:=bson.M{"pageType": pageType};
+	filter:=bson.M{"pageId": pageType};
 	fmt.Printf("Retrieving %s\n",pageType);
 	err=collection.FindOne(context.TODO(), filter).Decode(&result)
 	if err!= nil {
