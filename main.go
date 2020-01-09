@@ -6,7 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	"os"
 	"github.com/cts3njitedu/healthful-heart/handlers"
-	"github.com/cts3njitedu/healthful-heart/connections"
+	"github.com/justinas/alice"
 	
 )
 
@@ -20,13 +20,14 @@ func about(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	r := mux.NewRouter()
+	getLoginPage := http.HandlerFunc(handlers.GetLoginPage);
+	postLoginPage := http.HandlerFunc(handlers.PostLoginPage);
 	r.HandleFunc("/about", about)
-	r.HandleFunc("/login", handlers.GetLoginPage).Methods("GET");
+	r.Handle("/login", alice.New(handlers.Logging).Then(getLoginPage)).Methods("GET");
+	r.Handle("/login", alice.New(handlers.Logging).Then(postLoginPage)).Methods("POST");
 	r.HandleFunc("/", index)
 	http.Handle("/", r);
 	fmt.Println("Server Starting...")
-	connections.GetConnection();
-	
 
 	http.ListenAndServe(GetPort(), nil)
 }

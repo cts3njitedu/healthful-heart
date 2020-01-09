@@ -17,6 +17,11 @@
 			"Rev": "4720f73feb72425db47e2affac51aa7eb0ee49ac"
 		},
 		{
+			"ImportPath": "github.com/go-sql-driver/mysql",
+			"Comment": "v1.4.0-46-g8723940",
+			"Rev": "87239404061139bfbd9a61b167c5ed54539e6086"
+		},
+		{
 			"ImportPath": "github.com/go-stack/stack",
 			"Comment": "v1.8.0",
 			"Rev": "2fee6af1a9795aafbe0253a0cfbdf668e1fb8a9a"
@@ -69,6 +74,11 @@
 			"ImportPath": "github.com/joho/godotenv",
 			"Comment": "v1.3.0-12-gb09de68",
 			"Rev": "b09de681dcaff3eaeafcc62ee1f9f622a0c32b8b"
+		},
+		{
+			"ImportPath": "github.com/justinas/alice",
+			"Comment": "v1.2.0",
+			"Rev": "698d694619453f429d388422116af97d11f37f41"
 		},
 		{
 			"ImportPath": "github.com/pkg/errors",
@@ -320,8 +330,16 @@
 			"Rev": "643eada29081047b355cfaa1ceb9bc307a10423c"
 		},
 		{
+			"ImportPath": "golang.org/x/crypto/bcrypt",
+			"Rev": "5d647ca1575777a812e903a7e98177174d8c295a"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/blowfish",
+			"Rev": "5d647ca1575777a812e903a7e98177174d8c295a"
+		},
+		{
 			"ImportPath": "golang.org/x/crypto/pbkdf2",
-			"Rev": "53104e6ec876ad4e22ad27cce588b01392043c1b"
+			"Rev": "5d647ca1575777a812e903a7e98177174d8c295a"
 		},
 		{
 			"ImportPath": "golang.org/x/net/context",
