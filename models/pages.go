@@ -12,6 +12,8 @@ type Page struct {
 
 
 type Section struct {
+	Id string `bson:"id" json:"id"`
+	ParentId string `bson:"parentId" json:"parentId"`
 	SectionId string `bson:"sectionId" json:"sectionId"`
 	Fields []Field	`bson:"fields" json:"fields"`
 	Errors []string `bson:"errors" json:"errors"`
@@ -19,6 +21,8 @@ type Section struct {
 
 
 type Field struct {
+	Id string `bson:"id" json:"id"`
+	ParentId string `bson:"parentId" json:"parentId"`
 	FieldId string `bson:"fieldId" json:"fieldId"`
 	Name string `bson:"name" json:"name"`
 	Value string `bson:"value" json:"value"`
@@ -43,6 +47,8 @@ type Item struct {
 }
 
 type Validation struct {
+	Id string `bson:"id" json:"id"`
+	ParentId string `bson:"parentId" json:"parentId"`
 	ValidationId string `bson:"validationId" json:"validationId"`
 	ValidationName string `bson:"validationName" json:"validationName"`
 	Message string `bson:"message" json:"message"`

@@ -3,10 +3,8 @@ package handlers
 import (
 	"net/http"
 	"encoding/json"
-	"github.com/cts3njitedu/healthful-heart/repositories/mongorepo"
 	"github.com/cts3njitedu/healthful-heart/models"
-	"github.com/cts3njitedu/healthful-heart/utils"
-	"fmt"
+	"github.com/cts3njitedu/healthful-heart/services"
 )
 
 type LoginResponse struct {
@@ -14,31 +12,32 @@ type LoginResponse struct {
 	Message string `json:"Message"`
 }
 
+type LoginHandler struct {
+	authenticationService services.IAuthenticationService
+}
 
+type ILoginHandler interface {
+	GetLoginPage(w http.ResponseWriter, r *http.Request)
+	PostLoginPage(w http.ResponseWriter, r *http.Request)
+}
+func NewLoginHandler(authenticationService services.IAuthenticationService) *LoginHandler {
+	return &LoginHandler{authenticationService}
+}
 
-
-func GetLoginPage(w http.ResponseWriter, r *http.Request) {
+func (handler *LoginHandler) GetLoginPage(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type","application/json")
-	page:=mongorepo.GetPage("LOGIN_PAGE")
+	page:=handler.authenticationService.GetAuthenticationPage("LOGIN");
 	json.NewEncoder(w).Encode(page)
 }
 
 
-func PostLoginPage(w http.ResponseWriter, r *http.Request) {
+func (handler *LoginHandler) PostLoginPage(w http.ResponseWriter, r *http.Request) {
 	var credentials models.Credentials;
 	err := json.NewDecoder(r.Body).Decode(&credentials)
 	if err != nil {
         http.Error(w, err.Error(), http.StatusBadRequest)
         return
 	}
-
-	hashed, err := utils.HashPassword(credentials.Password);
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-        return
-	}
 	
-	fmt.Printf("Password: %s Hashed Password: %s", credentials.Password, hashed)
 	w.Write([]byte(`{"message": "Successfully Created"}`))
 }

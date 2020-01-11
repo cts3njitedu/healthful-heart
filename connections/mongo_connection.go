@@ -6,13 +6,21 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"fmt"
-	"log"
 	"os"
+	"log"
 	"github.com/joho/godotenv"
 )
 
+type MongoConnection struct {
 
-func GetConnection() (*mongo.Client, error) {
+
+}
+
+func NewMongoConnection() *MongoConnection {
+	return &MongoConnection{}
+}
+
+func (m *MongoConnection) GetConnection() (*mongo.Client, error) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -32,11 +40,13 @@ func GetConnection() (*mongo.Client, error) {
 	
 	client,err := mongo.Connect(ctx, clientOptions)
 	if err!= nil {
-		log.Fatal(err)
+		log.Println(err)
+		panic(err)
 	}
 	err = client.Ping(ctx,nil)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		panic(err)
 	}
 	fmt.Println("Connected to MongoDB!")
 	return client,err

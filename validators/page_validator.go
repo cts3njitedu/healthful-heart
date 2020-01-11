@@ -5,21 +5,44 @@ import (
 	"github.com/cts3njitedu/healthful-heart/models"
 )
 
-func validatePage(page models.Page){
+type PageValidator struct {
+	fieldValidator IFieldValidator
+}
 
-	for _,section := range page.Sections {
-		for _, field:= range section.Fields {
-			for _, validation := range field.Validations {
+type ValidationError struct {
+	s string
+}
+func NewPageValidator(fieldValidator IFieldValidator) *PageValidator {
+	return &PageValidator{fieldValidator}
+}
+func (v * ValidationError) Error() string {
+	return v.s
+}
+
+func (pageValidator PageValidator) ValidatePage(page *models.Page) (error) {
+	var isPageInvalid bool = false
+	for s := range page.Sections {
+		section := &page.Sections[s];
+		for f:= range section.Fields {
+			field := &section.Fields[f]
+			for v := range field.Validations {
+				validation := &field.Validations[v]
 				switch validation.ValidationName {
 				case "MANDATORY":
-					MandatoryFieldValidator(&field, &validation)
+					pageValidator.fieldValidator.MandatoryFieldValidator(field, validation)
 				case "REGEX":
-					RegexValueValidator(&field, &validation)
+					pageValidator.fieldValidator.RegexValueValidator(field, validation)
 				case "LENGTH":
-					LengthValidator(&field, &validation)
+					pageValidator.fieldValidator.LengthValidator(field, validation)
 
 				}
 			}
+			isPageInvalid = isPageInvalid || (len(field.Errors)>0); 
 		}
 	}
+
+	if isPageInvalid {
+		return &ValidationError{"Form is invalid. Please update form"}
+	}
+	return nil
 }

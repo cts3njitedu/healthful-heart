@@ -6,10 +6,15 @@ import (
 	"log"
 )
 
+type FieldValidator struct {}
 
-func MandatoryFieldValidator(field *models.Field, v *models.Validation) {
+func NewFieldValidator() *FieldValidator {
+	return &FieldValidator{}
+}
 
-	if v.IsMandatory {
+func (fieldValidator *FieldValidator) MandatoryFieldValidator(field *models.Field, v *models.Validation) {
+
+	if field.IsMandatory {
 		v.IsValid = len(field.Value)>0
 	} else {
 		v.IsValid = true;
@@ -17,8 +22,8 @@ func MandatoryFieldValidator(field *models.Field, v *models.Validation) {
 	appendToFieldErrors(field,v)
 }
 
-func RegexValueValidator(field *models.Field, v *models.Validation) {
-	r,err :=regexp.Compile(v.RegexValue)
+func (fieldValidator *FieldValidator) RegexValueValidator(field *models.Field, v *models.Validation) {
+	r,err :=regexp.Compile(field.RegexValue)
 	if err!=nil {
 		log.Fatal(err)
 	}
@@ -26,8 +31,8 @@ func RegexValueValidator(field *models.Field, v *models.Validation) {
 	appendToFieldErrors(field,v)
 }
 
-func LengthValidator(field *models.Field, v *models.Validation) {
-	v.IsValid = (len(field.Value)>=v.MinLength && len(field.Value)<=v.MaxLength)
+func (fieldValidator *FieldValidator) LengthValidator(field *models.Field, v *models.Validation) {
+	v.IsValid = (len(field.Value)>=field.MinLength && len(field.Value)<=field.MaxLength)
 	appendToFieldErrors(field,v)
 }
 

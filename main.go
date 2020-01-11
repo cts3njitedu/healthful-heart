@@ -7,6 +7,7 @@ import (
 	"os"
 	"github.com/cts3njitedu/healthful-heart/handlers"
 	"github.com/justinas/alice"
+	"github.com/cts3njitedu/healthful-heart/factories"
 	
 )
 
@@ -20,11 +21,14 @@ func about(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	r := mux.NewRouter()
-	getLoginPage := http.HandlerFunc(handlers.GetLoginPage);
-	postLoginPage := http.HandlerFunc(handlers.PostLoginPage);
+	getLoginPage := http.HandlerFunc(factories.GetLoginHandler().GetLoginPage);
+	postLoginPage := http.HandlerFunc(factories.GetLoginHandler().PostLoginPage);
+	getSignupPage := http.HandlerFunc(factories.GetSignupHandler().GetSignUpPage);
 	r.HandleFunc("/about", about)
 	r.Handle("/login", alice.New(handlers.Logging).Then(getLoginPage)).Methods("GET");
 	r.Handle("/login", alice.New(handlers.Logging).Then(postLoginPage)).Methods("POST");
+
+	r.Handle("/signup", alice.New(handlers.Logging).Then(getSignupPage)).Methods("GET");
 	r.HandleFunc("/", index)
 	http.Handle("/", r);
 	fmt.Println("Server Starting...")

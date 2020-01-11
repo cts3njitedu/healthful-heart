@@ -8,7 +8,15 @@ import (
 	"os"
 )
 
-func GetDBObject() (*sql.DB, error) {
+type MysqlConnection struct {}
+
+
+
+func NewMysqlConnection() *MysqlConnection {
+	return &MysqlConnection{}
+}
+
+func (conn *MysqlConnection) GetDBObject() (*sql.DB, error) {
 	fmt.Println("Creating mysql db object");
 	var url string;
 	

@@ -2,19 +2,29 @@ package mongorepo
 
 import (
 	"go.mongodb.org/mongo-driver/bson"
-	"log"
 	"github.com/cts3njitedu/healthful-heart/connections"
 	"github.com/cts3njitedu/healthful-heart/models"
 	"context"
 	"fmt"
+	"log"
 )
 
 
-func GetPage(pageType string) models.Page {
+
+type PageRepository struct {
+	connection connections.IMongoConnection
+}
+
+func NewPageRepository(conn connections.IMongoConnection) *PageRepository {
+	return &PageRepository{connection: conn,}
+}
+
+func (pageRepo PageRepository) GetPage(pageType string) models.Page {
 	var result models.Page
-	client,err:=connections.GetConnection();
+	client,err:=pageRepo.connection.GetConnection();
 	if err!=nil {
-		log.Fatal(err)
+		log.Println(err)
+		panic(err)
 	}
 	fmt.Println("Making db connection...");
 	db:=client.Database("HealthfulHeartConfig");
@@ -24,7 +34,8 @@ func GetPage(pageType string) models.Page {
 	fmt.Printf("Retrieving %s\n",pageType);
 	err=collection.FindOne(context.TODO(), filter).Decode(&result)
 	if err!= nil {
-		log.Fatal(err);
+		log.Println(err)
+		panic(err);
 	}
 	return result
 }
