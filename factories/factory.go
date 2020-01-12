@@ -11,6 +11,7 @@ import (
 	"github.com/cts3njitedu/healthful-heart/connections"
 	"github.com/cts3njitedu/healthful-heart/handlers"
 	"github.com/cts3njitedu/healthful-heart/validators"
+	"github.com/cts3njitedu/healthful-heart/utils"
 
 )
 
@@ -33,12 +34,14 @@ var (
 	singupEnricher *enrichers.SignupEnrich
 	enricherExecutor *enrichers.EnrichExecutor
 	loginService *services.LoginService
+	environmentUtiliy *utils.EnvironmentUtility
 
 )
 
 func init() {
-	mongoConnection = connections.NewMongoConnection()
-	pageRepository = mongorepo.NewPageRepository(mongoConnection)
+	environmentUtiliy = utils.NewEnvironmentUtility()
+	mongoConnection = connections.NewMongoConnection(environmentUtiliy)
+	pageRepository = mongorepo.NewPageRepository(mongoConnection, environmentUtiliy)
 	restructureService = services.NewRestructurePageService()
 	authenticationService = services.NewAuthenticationService(pageRepository, restructureService)
 	fieldValidator = validators.NewFieldValidator()

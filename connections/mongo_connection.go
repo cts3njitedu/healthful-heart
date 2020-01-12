@@ -6,36 +6,24 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"fmt"
-	"os"
 	"log"
-	"github.com/joho/godotenv"
+	"github.com/cts3njitedu/healthful-heart/utils"
 )
 
 type MongoConnection struct {
-
+	environmentUtil utils.IEnvironmentUtility
 
 }
 
-func NewMongoConnection() *MongoConnection {
-	return &MongoConnection{}
+func NewMongoConnection(environmentUtil utils.IEnvironmentUtility) *MongoConnection {
+	return &MongoConnection{environmentUtil}
 }
 
 func (m *MongoConnection) GetConnection() (*mongo.Client, error) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	var url string;
-	if err:= godotenv.Load(); err != nil {
-		uri,exists:=os.LookupEnv("MONGODB_URI");
-		if exists {
-			url=uri
-		}	
-	} else{
-		uri,exists:=os.LookupEnv("MONGODB_URI");
-		if exists {
-			url=uri
-		}
-	}
+	url:=m.environmentUtil.GetEnvironmentString("MONGODB_URI")
 	clientOptions:=options.Client().ApplyURI(url)
 	
 	client,err := mongo.Connect(ctx, clientOptions)
