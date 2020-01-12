@@ -15,3 +15,11 @@ type IAuthenticationService interface {
 type ISignupService interface {
 	SignupService(page models.Page) (models.Page, models.Credentials, error)
 }
+
+type IWorkflowService interface {
+	ExecuteWorkflow(page models.Page) (Workflow, error)
+}
+
+type ILoginService interface {
+	LoginService(page models.Page) (models.Page, models.Credentials, error)
+}

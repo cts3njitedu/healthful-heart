@@ -28,7 +28,11 @@ var (
 	userRepository *mysqlrepo.UserRepository
 	hasher *security.PasswordHasher
 	credentialEnricher *enrichers.CredentialEnricher
+	workflowService *services.WorkflowService
 	signupService *services.SignupService
+	singupEnricher *enrichers.SignupEnrich
+	enricherExecutor *enrichers.EnrichExecutor
+	loginService *services.LoginService
 
 )
 
@@ -45,7 +49,12 @@ func init() {
 	userRepository = mysqlrepo.NewUserRepository(mysqlConnection)
 	hasher = security.NewPasswordHasher()
 	credentialEnricher = enrichers.NewCredentialEnricher(hasher)
-	signupService = services.NewSignupService(pageValidator, pageRepository, mapperUtil, pageMerger, userRepository, credentialEnricher)
+	singupEnricher = enrichers.NewSignupEnrich();
+	enr:= []enrichers.IEnricher {singupEnricher}
+	enricherExecutor = enrichers.NewEnrichExecutor(enr)
+	workflowService = services.NewWorkflowService(pageValidator, pageRepository, mapperUtil,enricherExecutor , credentialEnricher)
+	signupService = services.NewSignupService(workflowService,userRepository)
+	loginService = services.NewLoginService(workflowService, userRepository, mapperUtil, hasher)
 }
 
 
@@ -54,7 +63,7 @@ func init() {
 
 func GetLoginHandler() *handlers.LoginHandler {
 	
-	return handlers.NewLoginHandler(authenticationService)
+	return handlers.NewLoginHandler(authenticationService, loginService)
 }
 
 func GetSignupHandler() *handlers.SignupHandler {

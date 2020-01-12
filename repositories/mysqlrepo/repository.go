@@ -5,7 +5,7 @@ import (
 )
 
 type IUserRepository interface {
-	GetUser(username string) models.User
+	GetUser(user models.User) models.User
 	CreateUser(user *models.User) error
 
 }

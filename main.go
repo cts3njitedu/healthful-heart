@@ -22,14 +22,14 @@ func about(w http.ResponseWriter, r *http.Request) {
 func main() {
 	r := mux.NewRouter()
 	getLoginPage := http.HandlerFunc(factories.GetLoginHandler().GetLoginPage);
-	postLoginPage := http.HandlerFunc(factories.GetLoginHandler().PostLoginPage);
+	postLoginPage := factories.GetLoginHandler().PostLoginPage;
 	getSignupPage := http.HandlerFunc(factories.GetSignupHandler().GetSignUpPage);
 	postSignupPage := factories.GetSignupHandler().PostSignUpPage;
 	tokenHandler := http.HandlerFunc(factories.GetTokenHandler().GetToken);
 
 	r.HandleFunc("/about", about)
 	r.Handle("/login", alice.New(handlers.Logging).Then(getLoginPage)).Methods("GET");
-	r.Handle("/login", alice.New(handlers.Logging).Then(postLoginPage)).Methods("POST");
+	r.Handle("/login", alice.New(handlers.Logging, postLoginPage).Then(tokenHandler)).Methods("POST");
 
 	r.Handle("/signup", alice.New(handlers.Logging).Then(getSignupPage)).Methods("GET");
 	r.Handle("/signup", alice.New(handlers.Logging,postSignupPage).Then(tokenHandler)).Methods("POST");

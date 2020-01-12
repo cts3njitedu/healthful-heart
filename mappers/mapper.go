@@ -9,6 +9,7 @@ import (
 type IMapper interface {
 	MapPageToCredentials(page models.Page) models.Credentials
 	MapCredentialsToUser(cred models.Credentials) models.User
+	MapUserToCredentials(user models.User) models.Credentials 
 }
 
 
@@ -50,4 +51,15 @@ func (mapper *Mapper) MapCredentialsToUser(cred models.Credentials) models.User 
 		Email: cred.Email,
 	}
 	return user
+}
+
+func (mapper *Mapper) MapUserToCredentials(user models.User) models.Credentials {
+	credentials:=models.Credentials {
+		Username: user.Username,
+		Password: user.Password,
+		FirstName: user.FirstName,
+		LastName: user.LastName,
+		Email: user.Email,
+	}
+	return credentials
 }

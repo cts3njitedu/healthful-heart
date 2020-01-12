@@ -20,7 +20,7 @@ func (credEnrich *CredentialEnricher) EnrichCredentials (cred *models.Credential
 	if err != nil {
 		return errors.New("Enriching credentials went wrong...")
 	}
-
+	cred.PasswordText = cred.Password;
 	cred.Password = pwd;
 	cred.ConfirmPassword = pwd;
 

@@ -16,6 +16,7 @@ func (restruct *RestructurePageService) RestructureLoginPage(page *models.Page) 
 		for f := range section.Fields {
 			var field  = &section.Fields[f]
 			field.IsHidden=false
+			field.IsMandatory=true
 		}
 	}
 }
