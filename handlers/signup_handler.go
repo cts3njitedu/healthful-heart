@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"github.com/cts3njitedu/healthful-heart/services"
 	"github.com/cts3njitedu/healthful-heart/models"
+	"github.com/cts3njitedu/healthful-heart/validators"
+	"github.com/gorilla/context"
 )
 
 type SignupHandler struct {
@@ -37,6 +39,23 @@ func (handler *SignupHandler) PostSignUpPage(next http.Handler) http.Handler {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}	
-		
+		newPage, credentials, err := handler.signupService.SignupService(page)
+
+		if err != nil {
+
+			
+			switch err.(type) {
+			case *validators.ValidationError:
+				w.WriteHeader(http.StatusBadRequest)
+				json.NewEncoder(w).Encode(newPage)
+			default:
+				http.Error(w, "Server error code 1", http.StatusInternalServerError)
+				
+			}
+			
+			return
+		}
+		context.Set(r,"credentials", credentials)
+		next.ServeHTTP(w, r)
 	})
 }

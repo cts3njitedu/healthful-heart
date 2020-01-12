@@ -2,6 +2,7 @@ package mappers
 
 import (
 	"github.com/cts3njitedu/healthful-heart/models"
+
 )
 
 
@@ -10,9 +11,8 @@ type IMapper interface {
 	MapCredentialsToUser(cred models.Credentials) models.User
 }
 
+
 type Mapper struct {}
-
-
 func NewMapper() *Mapper {
 	return &Mapper{}
 }

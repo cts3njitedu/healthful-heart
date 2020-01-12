@@ -60,3 +60,7 @@ func GetLoginHandler() *handlers.LoginHandler {
 func GetSignupHandler() *handlers.SignupHandler {
 	return handlers.NewSingupHandler(authenticationService, signupService)
 }
+
+func GetTokenHandler() *handlers.TokenHandler {
+	return handlers.NewTokenHandler()
+}

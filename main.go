@@ -24,11 +24,15 @@ func main() {
 	getLoginPage := http.HandlerFunc(factories.GetLoginHandler().GetLoginPage);
 	postLoginPage := http.HandlerFunc(factories.GetLoginHandler().PostLoginPage);
 	getSignupPage := http.HandlerFunc(factories.GetSignupHandler().GetSignUpPage);
+	postSignupPage := factories.GetSignupHandler().PostSignUpPage;
+	tokenHandler := http.HandlerFunc(factories.GetTokenHandler().GetToken);
+
 	r.HandleFunc("/about", about)
 	r.Handle("/login", alice.New(handlers.Logging).Then(getLoginPage)).Methods("GET");
 	r.Handle("/login", alice.New(handlers.Logging).Then(postLoginPage)).Methods("POST");
 
 	r.Handle("/signup", alice.New(handlers.Logging).Then(getSignupPage)).Methods("GET");
+	r.Handle("/signup", alice.New(handlers.Logging,postSignupPage).Then(tokenHandler)).Methods("POST");
 	r.HandleFunc("/", index)
 	http.Handle("/", r);
 	fmt.Println("Server Starting...")

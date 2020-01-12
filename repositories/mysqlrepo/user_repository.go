@@ -7,7 +7,7 @@ import (
 )
 
 const SQL_GET_USER string = "select * from User where username = ?"
-const SQL_INSERT_USER string = "insert intto user(firstname,lastname,email,password,username) values (?,?,?,?,?)"
+const SQL_INSERT_USER string = "insert into User(firstname,lastname,email,password,username) values (?,?,?,?,?)"
 
 
 
@@ -42,11 +42,13 @@ func (userRepository *UserRepository) CreateUser(user *models.User) error {
 	db, err := userRepository.connection.GetDBObject();
 
 	if err!=nil {
+		
 		panic(err.Error())
 	}
 	defer db.Close()
 
 	stmt, err := db.Prepare(SQL_INSERT_USER);
+
 
 	if err != nil {
 		panic(err.Error())
@@ -54,6 +56,9 @@ func (userRepository *UserRepository) CreateUser(user *models.User) error {
 
 	res, err := stmt.Exec(&user.FirstName, &user.LastName, &user.Email, &user.Password, &user.Username)
 
+	if err != nil {
+		panic(err.Error())
+	}
 	rowCnt, err := res.RowsAffected()
 
 	if err != nil {

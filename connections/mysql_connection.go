@@ -19,7 +19,6 @@ func NewMysqlConnection() *MysqlConnection {
 func (conn *MysqlConnection) GetDBObject() (*sql.DB, error) {
 	fmt.Println("Creating mysql db object");
 	var url string;
-	
 	if err:= godotenv.Load(); err != nil {
 		uri,exists:=os.LookupEnv("CLEARDB_DATABASE_URL");
 		if exists {
@@ -31,9 +30,11 @@ func (conn *MysqlConnection) GetDBObject() (*sql.DB, error) {
 			url=uri
 		}
 	}
+
 	db, err := sql.Open("mysql", url);
 
 	if err != nil {
+		fmt.Println("This is the error",err);
 		panic(err.Error())
 	}
 	return db, err
