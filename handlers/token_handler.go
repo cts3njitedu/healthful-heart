@@ -6,17 +6,21 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/cts3njitedu/healthful-heart/models"
 	"time"
+	"github.com/cts3njitedu/healthful-heart/utils"
+	"strconv"
 )
 
-type TokenHandler struct {}
+type TokenHandler struct {
+	environmentUtil utils.IEnvironmentUtility
+}
 
 
 type ITokenHandler interface {
 	GetToken(w http.ResponseWriter, r *http.Request)
 }
 
-func NewTokenHandler() *TokenHandler {
-	return &TokenHandler{}
+func NewTokenHandler(environmentUtil utils.IEnvironmentUtility) *TokenHandler {
+	return &TokenHandler{environmentUtil}
 }
 
 type Claims struct {
@@ -31,8 +35,20 @@ func (handler *TokenHandler) GetToken(w http.ResponseWriter, r *http.Request) {
 		creds = c
 	}
 	
+	accessTokenExpireTime,err:=strconv.Atoi(handler.environmentUtil.GetEnvironmentString("JWT_ACCESS_TOKEN_EXPIRATION_TIME"))
+	
+	if err!=nil {
+		panic(err.Error())
+	}
 
-	expirationTime := time.Now().Add(5 * time.Minute)
+	refreshTokenExpireTime,err:=strconv.Atoi(handler.environmentUtil.GetEnvironmentString("JWT_REFRESH_TOKEN_EXPIRATION_TIME"))
+
+	if err!=nil {
+		panic(err.Error())
+	}
+	
+	expirationTime := time.Now().Add(time.Duration(accessTokenExpireTime) * time.Minute)
+	
 
 	claims := &Claims{
 		Username: creds.Username,
@@ -43,7 +59,8 @@ func (handler *TokenHandler) GetToken(w http.ResponseWriter, r *http.Request) {
 
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString([]byte("secret"))
+	tokenSecret:=handler.environmentUtil.GetEnvironmentString("JWT_SECRET_KEY")
+	tokenString, err := token.SignedString([]byte(tokenSecret))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -56,10 +73,10 @@ func (handler *TokenHandler) GetToken(w http.ResponseWriter, r *http.Request) {
 	
 	refreshToken := jwt.New(jwt.SigningMethodHS256);
 	rtClaims := refreshToken.Claims.(jwt.MapClaims)
-	refreshExpirationTime := time.Now().Add(time.Hour * 24)
+	refreshExpirationTime := time.Now().Add(time.Hour * time.Duration(refreshTokenExpireTime))
 	rtClaims["sub"] = 1
 	rtClaims["exp"] = refreshExpirationTime.Unix()
-	refreshTokenString, err := refreshToken.SignedString([]byte("secret"))
+	refreshTokenString, err := refreshToken.SignedString([]byte(tokenSecret))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

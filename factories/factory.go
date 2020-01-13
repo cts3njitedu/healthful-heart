@@ -74,5 +74,5 @@ func GetSignupHandler() *handlers.SignupHandler {
 }
 
 func GetTokenHandler() *handlers.TokenHandler {
-	return handlers.NewTokenHandler()
+	return handlers.NewTokenHandler(environmentUtiliy)
 }
