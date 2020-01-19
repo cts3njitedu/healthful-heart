@@ -55,6 +55,7 @@ func (mapper *Mapper) MapCredentialsToUser(cred models.Credentials) models.User 
 
 func (mapper *Mapper) MapUserToCredentials(user models.User) models.Credentials {
 	credentials:=models.Credentials {
+		UserId: user.User_Id,
 		Username: user.Username,
 		Password: user.Password,
 		FirstName: user.FirstName,

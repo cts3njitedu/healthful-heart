@@ -21,6 +21,7 @@ type Workflow struct {
 	page models.Page
 	credentials models.Credentials
 	user models.User
+	blankPage models.Page
 }
 
 
@@ -59,5 +60,6 @@ func (work *WorkflowService) ExecuteWorkflow(page models.Page) (Workflow, error)
 		page: page,
 		credentials: cred,
 		user: user,
+		blankPage: dbPage,
 	},nil
 }

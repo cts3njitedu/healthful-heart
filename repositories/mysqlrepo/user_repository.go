@@ -5,6 +5,7 @@ import (
 	"github.com/cts3njitedu/healthful-heart/models"
 	"errors"
 	"fmt"
+	"database/sql"
 )
 
 const SQL_GET_USER string = "select * from User where username = ?"
@@ -21,7 +22,14 @@ func NewUserRepository(connection connections.IMysqlConnection) *UserRepository 
 	return &UserRepository{connection}
 }
 
-func (userRepository *UserRepository) GetUser(user models.User) models.User  {
+type UserError struct {
+	s string
+}
+
+func (userError * UserError) Error() string {
+	return userError.s
+}
+func (userRepository *UserRepository) GetUser(user models.User) (models.User, error) {
 	var queriedUser models.User
 	db, err := userRepository.connection.GetDBObject();
 	
@@ -34,14 +42,16 @@ func (userRepository *UserRepository) GetUser(user models.User) models.User  {
 	defer db.Close()
 	row:= db.QueryRow(SQL_GET_USER, user.Username)
 	
-	err=row.Scan(&queriedUser.UserId, &queriedUser.FirstName, &queriedUser.LastName, &queriedUser.Email, &queriedUser.Username, &queriedUser.Password);
+	err=row.Scan(&queriedUser.User_Id, &queriedUser.FirstName, &queriedUser.LastName, &queriedUser.Email, &queriedUser.Username, &queriedUser.Password);
 
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return models.User{}, &UserError{"Invalid username or password"}
+		}
 		panic(err.Error())
 	}
-
 	
-	return queriedUser;
+	return queriedUser, nil;
 }
 
 func (userRepository *UserRepository) CreateUser(user *models.User) error {

@@ -27,7 +27,9 @@ var (
 	pageMerger *mergers.PageMerger
 	mysqlConnection *connections.MysqlConnection
 	userRepository *mysqlrepo.UserRepository
+	tokenRepository *mysqlrepo.TokenRepository
 	hasher *security.PasswordHasher
+	jwtToken *security.JwtToken
 	credentialEnricher *enrichers.CredentialEnricher
 	workflowService *services.WorkflowService
 	signupService *services.SignupService
@@ -43,21 +45,23 @@ func init() {
 	mongoConnection = connections.NewMongoConnection(environmentUtiliy)
 	pageRepository = mongorepo.NewPageRepository(mongoConnection, environmentUtiliy)
 	restructureService = services.NewRestructurePageService()
-	authenticationService = services.NewAuthenticationService(pageRepository, restructureService)
 	fieldValidator = validators.NewFieldValidator()
 	pageValidator = validators.NewPageValidator(fieldValidator)
 	mapperUtil = mappers.NewMapper()
 	pageMerger = mergers.NewPageMerger()
 	mysqlConnection = connections.NewMysqlConnection()
 	userRepository = mysqlrepo.NewUserRepository(mysqlConnection)
+	tokenRepository = mysqlrepo.NewTokenRepository(mysqlConnection)
 	hasher = security.NewPasswordHasher()
+	jwtToken = security.NewJwtToken(environmentUtiliy, hasher, tokenRepository)
 	credentialEnricher = enrichers.NewCredentialEnricher(hasher)
 	singupEnricher = enrichers.NewSignupEnrich();
 	enr:= []enrichers.IEnricher {singupEnricher}
 	enricherExecutor = enrichers.NewEnrichExecutor(enr)
+	authenticationService = services.NewAuthenticationService(pageRepository, restructureService, enricherExecutor)
 	workflowService = services.NewWorkflowService(pageValidator, pageRepository, mapperUtil,enricherExecutor , credentialEnricher)
 	signupService = services.NewSignupService(workflowService,userRepository)
-	loginService = services.NewLoginService(workflowService, userRepository, mapperUtil, hasher)
+	loginService = services.NewLoginService(workflowService, userRepository, mapperUtil, hasher, enricherExecutor)
 }
 
 
@@ -74,5 +78,5 @@ func GetSignupHandler() *handlers.SignupHandler {
 }
 
 func GetTokenHandler() *handlers.TokenHandler {
-	return handlers.NewTokenHandler(environmentUtiliy)
+	return handlers.NewTokenHandler(environmentUtiliy, jwtToken)
 }

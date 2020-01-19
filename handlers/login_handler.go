@@ -7,13 +7,15 @@ import (
 	"github.com/cts3njitedu/healthful-heart/services"
 	"github.com/cts3njitedu/healthful-heart/validators"
 	"github.com/cts3njitedu/healthful-heart/security"
+	"github.com/cts3njitedu/healthful-heart/repositories/mysqlrepo"
 	"github.com/gorilla/context"
 	"fmt"
 )
 
 type LoginResponse struct {
 	IsError bool `json:"isError"`
-	Message string `json:"Message"`
+	Message string `json:"message"`
+	Page models.Page `json:"page"`
 }
 
 type LoginHandler struct {
@@ -51,15 +53,24 @@ func (handler *LoginHandler) PostLoginPage(next http.Handler) http.Handler {
 		if err != nil {
 
 			
+			
 			switch err.(type) {
 			case *validators.ValidationError:
 				w.WriteHeader(http.StatusBadRequest)
 				json.NewEncoder(w).Encode(newPage)
 			case *security.PasswordError:
 				w.WriteHeader(http.StatusUnauthorized)
+				newPage.Errors = append(newPage.Errors, "Invalid username or password")
 				json.NewEncoder(w).Encode(LoginResponse{
 					IsError: true,
-					Message: err.Error(),
+					Page: newPage,
+				})
+			case *mysqlrepo.UserError: 
+				w.WriteHeader(http.StatusUnauthorized)
+				newPage.Errors = append(newPage.Errors, "Invalid username or password")
+				json.NewEncoder(w).Encode(LoginResponse{
+					IsError: true,
+					Page: newPage,
 				})
 			default:
 				fmt.Println(err.Error())

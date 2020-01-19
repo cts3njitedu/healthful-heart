@@ -53,4 +53,5 @@ type Validation struct {
 	ValidationName string `bson:"validationName" json:"validationName"`
 	Message string `bson:"message" json:"message"`
 	IsValid bool 
+	IsEnabled bool `bson:"isEnabled" json:"isEnabled"`
 }

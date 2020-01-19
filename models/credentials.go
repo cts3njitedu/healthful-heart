@@ -1,6 +1,7 @@
 package models
 
 type Credentials struct {
+	UserId string `json:"userId"`
 	Username string `json:"username"`
 	Password string `json:"password"`
 	PasswordText string `json:"passwordText"`
