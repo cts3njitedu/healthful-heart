@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"database/sql"
+	"strconv"
 )
 
 const SQL_GET_USER string = "select * from User where username = ?"
@@ -80,7 +81,7 @@ func (userRepository *UserRepository) GetUser(user models.User) (models.User, er
 	return queriedUser, nil;
 }
 
-func (userRepository *UserRepository) CreateUser(user *models.User) error {
+func (userRepository *UserRepository) CreateUser(user *models.User) (error) {
 	db, err := userRepository.connection.GetDBObject();
 
 	if err!=nil {
@@ -98,9 +99,11 @@ func (userRepository *UserRepository) CreateUser(user *models.User) error {
 
 	res, err := stmt.Exec(&user.FirstName, &user.LastName, &user.Email, &user.Password, &user.Username)
 
+	
 	if err != nil {
 		panic(err.Error())
 	}
+
 	rowCnt, err := res.RowsAffected()
 
 	if err != nil {
@@ -110,7 +113,13 @@ func (userRepository *UserRepository) CreateUser(user *models.User) error {
 	if rowCnt != 1 {
 		return errors.New("Failure in sql execution")
 	}
+
+	id, err := res.LastInsertId();
 	
+	if err != nil {
+		panic(err.Error())
+	}
+	user.User_Id = strconv.FormatInt(id, 10)
 	return nil
 
 }

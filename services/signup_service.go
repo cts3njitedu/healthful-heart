@@ -30,6 +30,8 @@ func (signup * SignupService) SignupService(page models.Page) (models.Page, mode
 	cred:=work.credentials
 	err = signup.userRepository.CreateUser(&user)
 	
+	cred.UserId = user.User_Id
+	
 	if err != nil {
 		log.Printf("%+v\n",err)
 		return models.Page{}, models.Credentials{}, err
