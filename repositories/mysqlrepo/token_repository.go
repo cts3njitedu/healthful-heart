@@ -4,10 +4,9 @@ import (
 	"github.com/cts3njitedu/healthful-heart/connections"
 	"errors"
 	"time"
-	
 )
 
-const SQL_INSERT_TOKEN string = "insert into UserToken(Refresh_token,expiration_time,user_id) values (?,?,?)"
+const SQL_INSERT_TOKEN string = "insert into UserToken (Refresh_token,expiration_time,user_id) values (?,?,?) on duplicate key update refresh_token=?, expiration_time=?"
 
 type TokenRepository struct {
 	connection connections.IMysqlConnection
@@ -34,7 +33,7 @@ func (repo * TokenRepository) SaveRefreshToken(token string, expirationTime time
 		panic(err.Error())
 	}
 
-	res, err := stmt.Exec(token, expirationTime, userId)
+	res, err := stmt.Exec(token, expirationTime, userId, token, expirationTime)
 
 	if err != nil {
 		panic(err.Error())
@@ -45,7 +44,8 @@ func (repo * TokenRepository) SaveRefreshToken(token string, expirationTime time
 		panic(err.Error())
 	}
 
-	if rowCnt != 1 {
+	//
+	if rowCnt != 1 && rowCnt != 2 {
 		return errors.New("Failure in sql execution")
 	}
 	

@@ -25,9 +25,10 @@ func main() {
 	postLoginPage := factories.GetLoginHandler().PostLoginPage;
 	getSignupPage := http.HandlerFunc(factories.GetSignupHandler().GetSignUpPage);
 	postSignupPage := factories.GetSignupHandler().PostSignUpPage;
+	getAboutPage := http.HandlerFunc(factories.GetAboutHandler().GetAboutPage);
 	tokenHandler := http.HandlerFunc(factories.GetTokenHandler().GetToken);
-
-	r.HandleFunc("/about", about)
+	validateTokenHandler := factories.GetTokenHandler().ValidateToken;
+	r.Handle("/about", alice.New(handlers.Logging, validateTokenHandler).Then(getAboutPage)).Methods("GET")
 	r.Handle("/login", alice.New(handlers.Logging).Then(getLoginPage)).Methods("GET");
 	r.Handle("/login", alice.New(handlers.Logging, postLoginPage).Then(tokenHandler)).Methods("POST");
 

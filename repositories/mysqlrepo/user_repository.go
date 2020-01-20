@@ -10,7 +10,8 @@ import (
 
 const SQL_GET_USER string = "select * from User where username = ?"
 const SQL_INSERT_USER string = "insert into User(firstname,lastname,email,password,username) values (?,?,?,?,?)"
-
+const SQL_GET_TOKEN string = "select u.User_id, u.Firstname, u.LastName, u.Email, u.Username, ut.Refresh_token, ut.Expiration_Time" +
+		" from User u inner join UserToken ut on u.user_id = ut.user_id where u.user_id = ?"
 
 
 type UserRepository struct {
@@ -29,6 +30,31 @@ type UserError struct {
 func (userError * UserError) Error() string {
 	return userError.s
 }
+
+func (repo * UserRepository) GetUserToken(userId string) (models.User, error) {
+	var queriedUser models.User
+	db, err := repo.connection.GetDBObject();
+	
+	if err != nil {
+		panic(err.Error())
+	}
+
+
+	defer db.Close()
+	row:= db.QueryRow(SQL_GET_TOKEN, userId)
+	
+	err=row.Scan(&queriedUser.User_Id,&queriedUser.FirstName, &queriedUser.LastName, &queriedUser.Email, &queriedUser.Username, &queriedUser.RefreshToken, &queriedUser.ExpirationTime);
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return models.User{}, errors.New("User Token is missing")
+		}
+		panic(err.Error())
+	}
+	
+	return queriedUser, nil;
+}
+
 func (userRepository *UserRepository) GetUser(user models.User) (models.User, error) {
 	var queriedUser models.User
 	db, err := userRepository.connection.GetDBObject();

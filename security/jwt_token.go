@@ -2,21 +2,28 @@ package security
 
 import (
 	"github.com/cts3njitedu/healthful-heart/models"
+	"github.com/cts3njitedu/healthful-heart/mappers"
 	"github.com/cts3njitedu/healthful-heart/utils"
 	"strconv"
 	"github.com/dgrijalva/jwt-go"
 	"time"
 	"github.com/cts3njitedu/healthful-heart/repositories/mysqlrepo"
+	"errors"
+	"fmt"
 )
 type JwtToken struct {
 	environmentUtil utils.IEnvironmentUtility
 	hasher IPasswordHasher
 	tokenRepository mysqlrepo.ITokenRepository
+	userRepository mysqlrepo.IUserRepository
+	mapperUtil mappers.IMapper
 
 }
 type IJwtToken interface {
 	CreateAccessToken(creds models.Credentials) (models.JwtCookie, error)
 	CreateRefreshToken(creds models.Credentials) (models.JwtCookie, error)
+	ValidateToken(bearerToken string, claims *Claims) (models.Credentials, error)
+	ValidateRefreshToken(bearerToken string) (models.Credentials, error)
 }
 
 type Claims struct {
@@ -27,8 +34,10 @@ type Claims struct {
 	jwt.StandardClaims
 }
 
-func NewJwtToken(environmentUtil utils.IEnvironmentUtility, hasher IPasswordHasher, tokenRepository mysqlrepo.ITokenRepository) *JwtToken {
-	return &JwtToken{environmentUtil, hasher, tokenRepository}
+func NewJwtToken(environmentUtil utils.IEnvironmentUtility, hasher IPasswordHasher, 
+	tokenRepository mysqlrepo.ITokenRepository, 
+	userRepository mysqlrepo.IUserRepository, mapperUtil mappers.IMapper) *JwtToken {
+	return &JwtToken{environmentUtil, hasher, tokenRepository, userRepository, mapperUtil}
 }
 
 
@@ -109,5 +118,59 @@ func (jwtToken * JwtToken) CreateRefreshToken(creds models.Credentials) (models.
 
 
 	return cookie, nil
+
+}
+
+func (jwtToken * JwtToken) ValidateToken(bearerToken string, claims *Claims) (models.Credentials, error) {
+	token, err := jwt.ParseWithClaims(bearerToken, claims, func(token *jwt.Token) (interface{}, error){
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("There was an error")
+		}
+		tokenSecret:=jwtToken.environmentUtil.GetEnvironmentString("JWT_SECRET_KEY")
+		return []byte(tokenSecret), nil
+	})
+
+	if err != nil {
+		if err.(*jwt.ValidationError).Errors&jwt.ValidationErrorExpired != 0 {
+			fmt.Println("There is an expired token")
+		}
+		return models.Credentials{}, err
+	}
+	
+	if token.Valid {
+		credentials := models.Credentials {
+			Username: claims.Username,
+			FirstName: claims.FirstName,
+			LastName: claims.LastName,
+			UserId: claims.UserId,
+		}
+		return credentials, nil
+	} else{
+		return models.Credentials{}, errors.New("Unauthorized access")
+	}
+}
+
+func (jwtToken * JwtToken) ValidateRefreshToken(bearerToken string) (models.Credentials, error) {
+	claims := &Claims{}
+	_, err := jwtToken.ValidateToken(bearerToken, claims)
+	if err != nil {
+		return models.Credentials{}, err
+	}
+	userId := claims.Subject;
+
+	userToken, err := jwtToken.userRepository.GetUserToken(userId)
+
+	if err != nil {
+		return models.Credentials{}, err
+	}
+	
+	err = jwtToken.hasher.CompareHashWithPassword(userToken.RefreshToken, bearerToken)
+
+	if err != nil {
+		return models.Credentials{}, err
+	}
+
+	credentials := jwtToken.mapperUtil.MapUserToCredentials(userToken)
+	return credentials, nil
 
 }

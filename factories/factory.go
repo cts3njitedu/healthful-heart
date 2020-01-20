@@ -53,7 +53,7 @@ func init() {
 	userRepository = mysqlrepo.NewUserRepository(mysqlConnection)
 	tokenRepository = mysqlrepo.NewTokenRepository(mysqlConnection)
 	hasher = security.NewPasswordHasher()
-	jwtToken = security.NewJwtToken(environmentUtiliy, hasher, tokenRepository)
+	jwtToken = security.NewJwtToken(environmentUtiliy, hasher, tokenRepository, userRepository, mapperUtil)
 	credentialEnricher = enrichers.NewCredentialEnricher(hasher)
 	singupEnricher = enrichers.NewSignupEnrich();
 	enr:= []enrichers.IEnricher {singupEnricher}
@@ -79,4 +79,8 @@ func GetSignupHandler() *handlers.SignupHandler {
 
 func GetTokenHandler() *handlers.TokenHandler {
 	return handlers.NewTokenHandler(environmentUtiliy, jwtToken)
+}
+
+func GetAboutHandler() *handlers.AboutHandler {
+	return handlers.NewAboutHandler()
 }

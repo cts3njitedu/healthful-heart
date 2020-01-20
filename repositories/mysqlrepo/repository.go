@@ -8,9 +8,10 @@ import (
 type IUserRepository interface {
 	GetUser(user models.User) (models.User, error)
 	CreateUser(user *models.User) error
+	GetUserToken(userId string) (models.User, error)
 
 }
 
 type ITokenRepository interface {
-	SaveRefreshToken(token string, expirationTime time.Time, userId string) error 
+	SaveRefreshToken(token string, expirationTime time.Time, userId string) error
 }
