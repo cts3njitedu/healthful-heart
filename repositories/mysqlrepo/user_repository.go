@@ -3,6 +3,7 @@ package mysqlrepo
 import (
 	"github.com/cts3njitedu/healthful-heart/connections"
 	"github.com/cts3njitedu/healthful-heart/models"
+	"github.com/cts3njitedu/healthful-heart/errors"
 	"errors"
 	"fmt"
 	"database/sql"
@@ -22,14 +23,6 @@ type UserRepository struct {
 
 func NewUserRepository(connection connections.IMysqlConnection) *UserRepository {
 	return &UserRepository{connection}
-}
-
-type UserError struct {
-	s string
-}
-
-func (userError * UserError) Error() string {
-	return userError.s
 }
 
 func (repo * UserRepository) GetUserToken(userId string) (models.User, error) {
@@ -73,7 +66,7 @@ func (userRepository *UserRepository) GetUser(user models.User) (models.User, er
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return models.User{}, &UserError{"Invalid username or password"}
+			return models.User{}, &customerrors.InvalidCredentialsError{S:"Invalid username or password"}
 		}
 		panic(err.Error())
 	}

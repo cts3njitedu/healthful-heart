@@ -88,7 +88,7 @@ func (jwtToken * JwtToken) CreateRefreshToken(creds models.Credentials) (models.
 
 	refreshToken := jwt.New(jwt.SigningMethodHS256);
 	rtClaims := refreshToken.Claims.(jwt.MapClaims)
-	expirationTime := time.Now().Add(time.Hour * time.Duration(refreshTokenExpireTime))
+	expirationTime := time.Now().Add(time.Minute * time.Duration(refreshTokenExpireTime))
 	tokenSecret:=jwtToken.environmentUtil.GetEnvironmentString("JWT_SECRET_KEY")
 	rtClaims["sub"] = creds.UserId
 	rtClaims["exp"] = expirationTime.Unix()

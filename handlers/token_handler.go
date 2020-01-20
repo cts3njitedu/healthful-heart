@@ -77,11 +77,14 @@ func (handler *TokenHandler) ValidateToken(next http.Handler) http.Handler {
 				if err != nil {
 					refreshToken, err := r.Cookie("refresh_token")
 					if err != nil {
-						json.NewEncoder(w).Encode(Exception{Message: "No refresh token"})
+						w.WriteHeader(http.StatusUnauthorized)
+						json.NewEncoder(w).Encode(Exception{Message: "Unauthorized access"})
+						return
 					}
 					credentials, err = handler.jwtToken.ValidateRefreshToken(refreshToken.Value)
 					if err != nil {
-						json.NewEncoder(w).Encode(Exception{Message: err.Error()})
+						w.WriteHeader(http.StatusUnauthorized)
+						json.NewEncoder(w).Encode(Exception{Message: "Unauthorized access"})
 						return
 					}
 					accessCookie, err := handler.jwtToken.CreateAccessToken(credentials)

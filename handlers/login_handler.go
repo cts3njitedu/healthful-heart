@@ -4,10 +4,10 @@ import (
 	"net/http"
 	"encoding/json"
 	"github.com/cts3njitedu/healthful-heart/models"
+	"github.com/cts3njitedu/healthful-heart/errors"
 	"github.com/cts3njitedu/healthful-heart/services"
 	"github.com/cts3njitedu/healthful-heart/validators"
 	"github.com/cts3njitedu/healthful-heart/security"
-	"github.com/cts3njitedu/healthful-heart/repositories/mysqlrepo"
 	"github.com/gorilla/context"
 	"fmt"
 )
@@ -65,7 +65,7 @@ func (handler *LoginHandler) PostLoginPage(next http.Handler) http.Handler {
 					IsError: true,
 					Page: newPage,
 				})
-			case *mysqlrepo.UserError: 
+			case *customerrors.InvalidCredentialsError: 
 				w.WriteHeader(http.StatusUnauthorized)
 				newPage.Errors = append(newPage.Errors, "Invalid username or password")
 				json.NewEncoder(w).Encode(LoginResponse{

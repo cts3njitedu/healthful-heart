@@ -6,6 +6,7 @@ import (
 	"github.com/cts3njitedu/healthful-heart/repositories/mysqlrepo"
 	"github.com/cts3njitedu/healthful-heart/enrichers"
 	"github.com/cts3njitedu/healthful-heart/security"
+	"github.com/cts3njitedu/healthful-heart/errors"
 )
 
 type LoginService struct {
@@ -45,7 +46,9 @@ func (login *LoginService) LoginService(page models.Page) (models.Page, models.C
 	// fmt.Printf("User password: %+v, Credentials: %+v\n", hashedUser, cred)
 	err = login.hasher.CompareHashWithPassword(hashedUser.Password, cred.PasswordText)
 	if err != nil {
-		return models.Page{}, models.Credentials{}, err
+		blankPage := work.blankPage
+		login.enricherExecutor.Enricher(&blankPage, blankPage)
+		return blankPage, models.Credentials{}, &customerrors.InvalidCredentialsError{S:"Invalid username or password"}
 	}
 	cred = login.mapperUtil.MapUserToCredentials(hashedUser)
 	return models.Page{}, cred, nil
