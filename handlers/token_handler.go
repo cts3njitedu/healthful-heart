@@ -75,12 +75,12 @@ func (handler *TokenHandler) ValidateToken(next http.Handler) http.Handler {
 			if len(bearerToken) == 2 {
 				claims := &security.Claims{}
 				credentials, err := handler.jwtToken.ValidateToken(bearerToken[1],claims)
-				refreshToken, err := r.Cookie("refresh_token")
-				fmt.Printf("Refresh Token: %+v\n", refreshToken)
+				
 				if err != nil {
-					// refreshToken, err := r.Cookie("refresh_token")
-					// fmt.Printf("Refresh Token: %+v\n", refreshToken)
+					refreshToken, err := r.Cookie("refresh_token")
+					fmt.Printf("Refresh Token: %+v\n", refreshToken)
 					if err != nil {
+						fmt.Println("Refresh token has expired...")
 						w.WriteHeader(http.StatusUnauthorized)
 						json.NewEncoder(w).Encode(Exception{Message: "Unauthorized access"})
 						return
