@@ -37,6 +37,7 @@ var (
 	enricherExecutor *enrichers.EnrichExecutor
 	loginService *services.LoginService
 	environmentUtiliy *utils.EnvironmentUtility
+	fileService *services.FileService
 
 )
 
@@ -62,6 +63,7 @@ func init() {
 	workflowService = services.NewWorkflowService(pageValidator, pageRepository, mapperUtil,enricherExecutor , credentialEnricher)
 	signupService = services.NewSignupService(workflowService,userRepository)
 	loginService = services.NewLoginService(workflowService, userRepository, mapperUtil, hasher, enricherExecutor)
+	fileService = services.NewFileService(mongoConnection, environmentUtiliy)
 }
 
 
@@ -86,5 +88,5 @@ func GetAboutHandler() *handlers.AboutHandler {
 }
 
 func GetFileHandler() *handlers.FileHandler {
-	return handlers.NewFileHandler(mongoConnection)
+	return handlers.NewFileHandler(fileService)
 }

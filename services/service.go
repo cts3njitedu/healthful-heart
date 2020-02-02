@@ -2,6 +2,7 @@ package services
 
 import (
 	"github.com/cts3njitedu/healthful-heart/models"
+	"mime/multipart"
 )
 
 type IRestructurePageService interface {
@@ -22,4 +23,8 @@ type IWorkflowService interface {
 
 type ILoginService interface {
 	LoginService(page models.Page) (models.Page, models.Credentials, error)
+}
+
+type IFileService interface {
+	UploadFile(file multipart.File, fileHeader * multipart.FileHeader) error
 }
