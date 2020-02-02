@@ -7,6 +7,7 @@ import (
 
 type IMongoConnection interface {
 	GetConnection() (*mongo.Client, error)
+	GetFileConnection() (*mongo.Client, error)
 }
 
 type IMysqlConnection interface {

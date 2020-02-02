@@ -20,8 +20,8 @@ func NewFileService(connection connections.IMongoConnection,environmentUtil util
 
 func (fileService *FileService) UploadFile(file multipart.File, fileHeader * multipart.FileHeader) error {
 	fmt.Println("File Upload Endpoint Hit");
-
-	client,err:=fileService.connection.GetConnection();
+	defer file.Close()
+	client,err:=fileService.connection.GetFileConnection();
 
 	if err != nil {
 		fmt.Println(err)
@@ -33,7 +33,7 @@ func (fileService *FileService) UploadFile(file multipart.File, fileHeader * mul
 		fmt.Println(err)
 		return err;
 	}
-	dbName:=fileService.environmentUtil.GetEnvironmentString("MONGODB_HEALTH_CONFIG_DB")
+	dbName:=fileService.environmentUtil.GetEnvironmentString("MONGODB_HEALTH_FILE_DB")
 
 	db := client.Database(dbName)
 
@@ -43,9 +43,11 @@ func (fileService *FileService) UploadFile(file multipart.File, fileHeader * mul
 		fmt.Println(err)
 		return err;
 	}
-
-	
-	uploadStream, err := bucket.OpenUploadStream(fileHeader.Filename)
+	// helper:=int32(15000)
+	// mOptions:=&options.UploadOptions{
+	// 	ChunkSizeBytes: &helper,
+	// }
+	uploadStream, err := bucket.OpenUploadStream(fileHeader.Filename,)
 
 	defer uploadStream.Close()
 
