@@ -84,3 +84,7 @@ func GetTokenHandler() *handlers.TokenHandler {
 func GetAboutHandler() *handlers.AboutHandler {
 	return handlers.NewAboutHandler()
 }
+
+func GetFileHandler() *handlers.FileHandler {
+	return handlers.NewFileHandler(mongoConnection)
+}

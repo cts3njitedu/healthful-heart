@@ -78,7 +78,6 @@ func (handler *TokenHandler) ValidateToken(next http.Handler) http.Handler {
 				
 				if err != nil {
 					refreshToken, err := r.Cookie("refresh_token")
-					fmt.Printf("Refresh Token: %+v\n", refreshToken)
 					if err != nil {
 						fmt.Println("Refresh token has expired...")
 						w.WriteHeader(http.StatusUnauthorized)
