@@ -33,7 +33,7 @@ func (process *FileProcessorService) ProcessWorkoutFile(file models.WorkoutFile)
 		fmt.Println(err)
 		return err;
 	}
-
+	fmt.Println("Why aren't you coming here")
 	data, err := process.workFile.RetrieveFile(&newFile)
 
 	fileReader := bytes.NewReader(data.Bytes())
@@ -51,7 +51,6 @@ func (process *FileProcessorService) ProcessWorkoutFile(file models.WorkoutFile)
 	// 	fmt.Println(err)
 	// 	return err;
 	// }
-
 	fmt.Printf("Cell value is: %v", cell);
 	return nil
 
