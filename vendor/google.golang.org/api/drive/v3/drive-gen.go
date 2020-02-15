@@ -39,7 +39,7 @@
 //   driveService, err := drive.NewService(ctx, option.WithTokenSource(config.TokenSource(ctx, token)))
 //
 // See https://godoc.org/google.golang.org/api/option/ for details on options.
-package drive
+package drive // import "google.golang.org/api/drive/v3"
 
 import (
 	"bytes"

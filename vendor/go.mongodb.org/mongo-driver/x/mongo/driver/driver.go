@@ -1,4 +1,4 @@
-package driver
+package driver // import "go.mongodb.org/mongo-driver/x/mongo/driver"
 
 import (
 	"context"
