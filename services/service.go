@@ -26,5 +26,10 @@ type ILoginService interface {
 }
 
 type IFileService interface {
-	UploadFile(file multipart.File, fileHeader * multipart.FileHeader) error
+	UploadFile(file multipart.File, fileHeader * multipart.FileHeader, cred models.Credentials) error
+}
+
+type IRabbitService interface {
+	PushFileMetaDataToQueue(file *models.WorkoutFile) error
+	// PullFileMetaDataFromQueue()
 }

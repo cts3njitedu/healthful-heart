@@ -18,6 +18,7 @@ require (
 	github.com/justinas/alice v1.2.0
 	github.com/klauspost/compress v1.9.9-0.20200124135541-e75fbf67426b
 	github.com/pkg/errors v0.8.2-0.20191109102316-7f95ac13edff
+	github.com/streadway/amqp v0.0.0-20200108173154-1c71cc93ed71
 	github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c
 	github.com/xdg/stringprep v1.0.1-0.20180714160509-73f8eece6fdc
 	go.mongodb.org/mongo-driver v1.2.1-0.20200123200554-a517f8e2ad40

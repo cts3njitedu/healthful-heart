@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"github.com/cts3njitedu/healthful-heart/services"
+	"github.com/cts3njitedu/healthful-heart/models"
+	"github.com/gorilla/context"
 )
 
 type FileHandler struct {
@@ -20,6 +22,12 @@ func NewFileHandler(fileService services.IFileService) *FileHandler {
 func (fHandler *FileHandler) UploadFile(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("File Upload Endpoint Hit");
 
+	credentials:=context.Get(r,"credentials")
+	var creds models.Credentials
+
+	if c, ok := credentials.(models.Credentials); ok {
+		creds = c
+	}
 	r.ParseMultipartForm(10 << 20)
 
 	file, handler, err := r.FormFile("myFile");
@@ -32,7 +40,7 @@ func (fHandler *FileHandler) UploadFile(w http.ResponseWriter, r *http.Request) 
 	}
 	defer file.Close()
 
-	fHandler.fileService.UploadFile(file,handler)
+	fHandler.fileService.UploadFile(file,handler,creds)
 	
 	w.Write([]byte(`{"message": "In about page"}`))
 

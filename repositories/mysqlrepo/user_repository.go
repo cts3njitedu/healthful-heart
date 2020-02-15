@@ -5,7 +5,6 @@ import (
 	"github.com/cts3njitedu/healthful-heart/models"
 	"github.com/cts3njitedu/healthful-heart/errors"
 	"errors"
-	"fmt"
 	"database/sql"
 	"strconv"
 )
@@ -56,8 +55,6 @@ func (userRepository *UserRepository) GetUser(user models.User) (models.User, er
 	if err != nil {
 		panic(err.Error())
 	}
-
-	fmt.Printf("Credentials are: %s \n", user.Username)
 
 	defer db.Close()
 	row:= db.QueryRow(SQL_GET_USER, user.Username)

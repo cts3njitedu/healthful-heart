@@ -36,7 +36,7 @@ func (handler *TokenHandler) GetToken(w http.ResponseWriter, r *http.Request) {
 	if c, ok := credentials.(models.Credentials); ok {
 		creds = c
 	}
-	
+	fmt.Println("Insided token handler");
 	accessCookie, err := handler.jwtToken.CreateAccessToken(creds)
 	
 	if err != nil {

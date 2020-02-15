@@ -15,3 +15,7 @@ type IUserRepository interface {
 type ITokenRepository interface {
 	SaveRefreshToken(token string, expirationTime time.Time, userId string) error
 }
+
+type IFileRepository interface {
+	SaveFile(file *models.WorkoutFile) (error)
+}

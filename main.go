@@ -30,7 +30,7 @@ func main() {
 	validateTokenHandler := factories.GetTokenHandler().ValidateToken;
 	uploadFile := http.HandlerFunc(factories.GetFileHandler().UploadFile);
 
-	r.HandleFunc("/upload", uploadFile).Methods("POST")
+	r.Handle("/upload", alice.New(handlers.Logging, validateTokenHandler).Then(uploadFile)).Methods("POST")
 	r.Handle("/about", alice.New(handlers.Logging, validateTokenHandler).Then(getAboutPage)).Methods("GET")
 	r.Handle("/login", alice.New(handlers.Logging).Then(getLoginPage)).Methods("GET");
 	r.Handle("/login", alice.New(handlers.Logging, postLoginPage).Then(tokenHandler)).Methods("POST");

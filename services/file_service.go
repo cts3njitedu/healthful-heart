@@ -7,24 +7,45 @@ import (
 	"github.com/cts3njitedu/healthful-heart/connections"
 	"mime/multipart"
 	"github.com/cts3njitedu/healthful-heart/utils"
+	"github.com/cts3njitedu/healthful-heart/models"
+	"github.com/cts3njitedu/healthful-heart/repositories/mysqlrepo"
+	"strconv"
 )
 
 type FileService struct {
 	connection connections.IMongoConnection
 	environmentUtil utils.IEnvironmentUtility
+	fileRepository mysqlrepo.IFileRepository
+	rabbitService IRabbitService
 }
 
-func NewFileService(connection connections.IMongoConnection,environmentUtil utils.IEnvironmentUtility) *FileService {
-	return &FileService{connection,environmentUtil}
+func NewFileService(connection connections.IMongoConnection,
+	environmentUtil utils.IEnvironmentUtility, 
+	fileRepository mysqlrepo.IFileRepository, rabbitService IRabbitService) *FileService {
+	return &FileService{connection,environmentUtil, fileRepository, rabbitService}
 }
 
-func (fileService *FileService) UploadFile(file multipart.File, fileHeader * multipart.FileHeader) error {
+func (fileService *FileService) UploadFile(file multipart.File, fileHeader * multipart.FileHeader, cred models.Credentials) error {
 	fmt.Println("File Upload Endpoint Hit");
 	defer file.Close()
+	var userId int64
+	userId, err := strconv.ParseInt(cred.UserId,10,64)
+	if err != nil {
+		fmt.Println(err)
+	}
+	newFile := &models.WorkoutFile{
+		User_Id: userId,
+		File_Name: fileHeader.Filename,
+		Status: models.IMPORT_IN_PROGRESS,
+		Version_Nb: 1,
+
+	}
+
 	client,err:=fileService.connection.GetFileConnection();
 
 	if err != nil {
 		fmt.Println(err)
+		return err;
 	}
 
 	data, err := ioutil.ReadAll(file)
@@ -47,7 +68,11 @@ func (fileService *FileService) UploadFile(file multipart.File, fileHeader * mul
 	// mOptions:=&options.UploadOptions{
 	// 	ChunkSizeBytes: &helper,
 	// }
-	uploadStream, err := bucket.OpenUploadStream(fileHeader.Filename,)
+
+	fmt.Printf("Saving file %s to database", fileHeader.Filename);
+	fileService.fileRepository.SaveFile(newFile);
+	
+	uploadStream, err := bucket.OpenUploadStreamWithID(newFile.Workout_File_Id, fileHeader.Filename,)
 
 	defer uploadStream.Close()
 
@@ -55,15 +80,18 @@ func (fileService *FileService) UploadFile(file multipart.File, fileHeader * mul
 		fmt.Println(err)
 		return err
 	}
-
+	fmt.Printf("Saving file %s to mongo", fileHeader.Filename);
 	fileSize, err := uploadStream.Write(data)
 
 	if err!=nil {
 		fmt.Println(err)
 		return err
 	}
+
 	
 	fmt.Printf("Write file to DB was successful. File size: %d \n", fileSize)
+
+	fileService.rabbitService.PushFileMetaDataToQueue(newFile)
 	return nil
 }
 
