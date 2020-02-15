@@ -33,3 +33,7 @@ type IRabbitService interface {
 	PushFileMetaDataToQueue(file *models.WorkoutFile) error
 	// PullFileMetaDataFromQueue()
 }
+
+type IFileProcessorService interface {
+	ProcessWorkoutFile(file models.WorkoutFile) (error)
+}

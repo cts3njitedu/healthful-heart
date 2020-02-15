@@ -41,6 +41,8 @@ var (
 	fileService *services.FileService
 	rabbitConnection *connections.RabbitConnection
 	rabbitService *services.RabbitService
+	workoutRepository *mongorepo.WorkfileRepository
+	fileProcessorService *services.FileProcessorService
 
 )
 
@@ -49,6 +51,7 @@ func init() {
 	mongoConnection = connections.NewMongoConnection(environmentUtiliy)
 	rabbitConnection = connections.NewRabbitConnection(environmentUtiliy)
 	pageRepository = mongorepo.NewPageRepository(mongoConnection, environmentUtiliy)
+	workoutRepository = mongorepo.NewWorkfileRepository(mongoConnection, environmentUtiliy)
 	restructureService = services.NewRestructurePageService()
 	fieldValidator = validators.NewFieldValidator()
 	pageValidator = validators.NewPageValidator(fieldValidator)
@@ -64,12 +67,13 @@ func init() {
 	singupEnricher = enrichers.NewSignupEnrich();
 	enr:= []enrichers.IEnricher {singupEnricher}
 	enricherExecutor = enrichers.NewEnrichExecutor(enr)
-	rabbitService = services.NewRabbitService(rabbitConnection, environmentUtiliy)
+	fileProcessorService = services.NewFileProcessorService(workoutRepository, environmentUtiliy, fileRepository)
+	rabbitService = services.NewRabbitService(rabbitConnection, environmentUtiliy, fileProcessorService)
 	authenticationService = services.NewAuthenticationService(pageRepository, restructureService, enricherExecutor)
 	workflowService = services.NewWorkflowService(pageValidator, pageRepository, mapperUtil,enricherExecutor , credentialEnricher)
 	signupService = services.NewSignupService(workflowService,userRepository)
 	loginService = services.NewLoginService(workflowService, userRepository, mapperUtil, hasher, enricherExecutor)
-	fileService = services.NewFileService(mongoConnection, environmentUtiliy, fileRepository, rabbitService)
+	fileService = services.NewFileService(workoutRepository, environmentUtiliy, fileRepository, rabbitService)
 }
 
 

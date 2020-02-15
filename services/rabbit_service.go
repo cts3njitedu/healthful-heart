@@ -13,6 +13,7 @@ import (
 type RabbitService struct {
 	rabbitConnection connections.IRabbitConnection
 	environmentUtil utils.IEnvironmentUtility
+	fileProcessor IFileProcessorService
 
 }
 
@@ -20,7 +21,8 @@ var (
 	_conn *amqp.Connection;
 )
 
-func NewRabbitService(rabbitConnection connections.IRabbitConnection, environmentUtil utils.IEnvironmentUtility) *RabbitService {
+func NewRabbitService(rabbitConnection connections.IRabbitConnection, 
+	environmentUtil utils.IEnvironmentUtility, fileProcessor IFileProcessorService) *RabbitService {
 	log.Println("Making rabbit connection...");
 	conn, err := rabbitConnection.GetConnection();
 
@@ -29,9 +31,9 @@ func NewRabbitService(rabbitConnection connections.IRabbitConnection, environmen
 	}
 	_conn = conn;
 	
-	go pullFileMetaDataFromQueue(environmentUtil);
+	go pullFileMetaDataFromQueue(environmentUtil, fileProcessor);
 	
-	return &RabbitService{rabbitConnection, environmentUtil}
+	return &RabbitService{rabbitConnection, environmentUtil, fileProcessor}
 }
 
 func (rabbitService *RabbitService) PushFileMetaDataToQueue(file *models.WorkoutFile) error {
@@ -106,7 +108,7 @@ func (rabbitService *RabbitService) PushFileMetaDataToQueue(file *models.Workout
 	return nil
 }
 
-func pullFileMetaDataFromQueue(environmentUtil utils.IEnvironmentUtility) {
+func pullFileMetaDataFromQueue(environmentUtil utils.IEnvironmentUtility, fileProcessor IFileProcessorService) {
 
 	// log.Println("Begining process to retrieve messages from queue....")
 	// conn, err := rabbitService.rabbitConnection.GetConnection();
@@ -123,20 +125,6 @@ func pullFileMetaDataFromQueue(environmentUtil utils.IEnvironmentUtility) {
 	}
 
 	defer ch.Close()
-
-	// err = ch.ExchangeDeclare (
-	// 	exchangeName,
-	// 	"direct",
-	// 	true,
-	// 	false,
-	// 	false,
-	// 	false,
-	// 	nil,
-	// )
-
-	// if err!=nil {
-	// 	fmt.Println("Three: ", err)
-	// }
 
 	q, err := ch.QueueDeclare(
 		queueName,
@@ -180,13 +168,19 @@ func pullFileMetaDataFromQueue(environmentUtil utils.IEnvironmentUtility) {
 	forever := make(chan bool)
 
 	go func() {
-
-			for d := range msgs {
-					log.Printf(" [x] Received %s %T", d.Body, d.Body)
+		for d := range msgs {
+			var fileMetaData models.WorkoutFile
+			err := json.Unmarshal(d.Body, &fileMetaData)
+			if err != nil {
+				fmt.Println("error:", err)
 			}
+			fmt.Printf("File Meta Data: %+v\n", fileMetaData)
+			fileProcessor.ProcessWorkoutFile(fileMetaData)
+			
+		}
 	}()
 
-	log.Printf(" [*] Waiting for logs. To exit press CTRL+C")
+	log.Printf(" [*] Waiting for files. To exit press CTRL+C")
 	<-forever
 
 }

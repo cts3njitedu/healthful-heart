@@ -18,4 +18,5 @@ type ITokenRepository interface {
 
 type IFileRepository interface {
 	SaveFile(file *models.WorkoutFile) (error)
+	UpdateFileStatus(file *models.WorkoutFile, newStatus string) (models.WorkoutFile, error)
 }

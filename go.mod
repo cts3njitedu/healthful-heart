@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	cloud.google.com/go v0.50.1-0.20191227173528-aa359b4e5dfe // indirect
+	github.com/360EntSecGroup-Skylar/excelize v1.4.1
 	github.com/dgrijalva/jwt-go v3.2.1-0.20200107013213-dc14462fd587+incompatible
 	github.com/go-sql-driver/mysql v1.4.1-0.20200105051852-872394040611
 	github.com/go-stack/stack v1.8.0 // indirect
