@@ -1,1 +1,1 @@
-web: bin/healthful-heart
+web: healthful-heart
