@@ -36,6 +36,11 @@ func (process *FileProcessorService) ProcessWorkoutFile(file models.WorkoutFile)
 	fmt.Println("Why aren't you coming here")
 	data, err := process.workFile.RetrieveFile(&newFile)
 
+	if err != nil {
+		fmt.Println(err)
+		return err;
+	}
+	
 	fileReader := bytes.NewReader(data.Bytes())
 
 	excelFile, err := excelize.OpenReader(fileReader)
