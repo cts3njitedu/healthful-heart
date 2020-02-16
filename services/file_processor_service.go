@@ -54,11 +54,13 @@ func (process *FileProcessorService) ProcessWorkoutFile(file models.WorkoutFile)
 
 	cell := excelFile.GetCellValue("Sheet1", "A1");
 
+	fmt.Println("I am here you don't have to worry")
+
 	// if err !=nil {
 	// 	fmt.Println(err)
 	// 	return err;
 	// }
-	fmt.Printf("Cell value is: %v", cell);
+	fmt.Println("Cell value is", cell);
 	return nil
 
 }

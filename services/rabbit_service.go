@@ -167,6 +167,11 @@ func pullFileMetaDataFromQueue(environmentUtil utils.IEnvironmentUtility, filePr
 
 	forever := make(chan bool)
 
+	defer func() {
+        if r := recover(); r != nil {
+            fmt.Println("Recovered in f", r)
+        }
+    }()
 	go func() {
 		for d := range msgs {
 			var fileMetaData models.WorkoutFile
