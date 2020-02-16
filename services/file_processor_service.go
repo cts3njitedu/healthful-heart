@@ -40,7 +40,7 @@ func (process *FileProcessorService) ProcessWorkoutFile(file models.WorkoutFile)
 		fmt.Println(err)
 		return err;
 	}
-	
+
 	fileReader := bytes.NewReader(data.Bytes())
 
 	excelFile, err := excelize.OpenReader(fileReader)
@@ -49,6 +49,8 @@ func (process *FileProcessorService) ProcessWorkoutFile(file models.WorkoutFile)
 		fmt.Println(err)
 		return err;
 	}
+
+	fmt.Println("I am here you don't have to worry")
 
 	cell := excelFile.GetCellValue("Sheet1", "A1");
 
