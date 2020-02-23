@@ -64,7 +64,7 @@ func (repo *FileRepository) SaveFile(file *models.WorkoutFile) (error) {
 
 func (repo *FileRepository) UpdateFileStatus(file *models.WorkoutFile, newStatus string) (models.WorkoutFile, error) {
 	db, err := repo.connection.GetDBObject();
-	fmt.Printf("File being update: %+v", file)
+	
 	if err != nil {
 		panic(err.Error())
 	}
@@ -99,8 +99,8 @@ func (repo *FileRepository) UpdateFileStatus(file *models.WorkoutFile, newStatus
 
 	row := tx.QueryRow(SQL_GET_FILE, file.Workout_File_Id)
 
-	err=row.Scan(&newWorkoutFile.Workout_File_Id, &newWorkoutFile.File_Name, &newWorkoutFile.File_Path, &newWorkoutFile.Status, &newWorkoutFile.User_Id, &newWorkoutFile.Version_Nb);
-
+	err=row.Scan(&newWorkoutFile.Workout_File_Id, &newWorkoutFile.File_Name, &newWorkoutFile.File_Path, &newWorkoutFile.Status, &newWorkoutFile.User_Id, &newWorkoutFile.Version_Nb, &newWorkoutFile.Cre_Ts, &newWorkoutFile.Mod_Ts);
+	fmt.Printf("File being queries: %+v", newWorkoutFile)
 	if err != nil {
 		tx.Rollback()
 		if err == sql.ErrNoRows {

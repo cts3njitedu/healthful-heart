@@ -37,3 +37,7 @@ type IRabbitService interface {
 type IFileProcessorService interface {
 	ProcessWorkoutFile(file models.WorkoutFile) (error)
 }
+
+type IGroupParserService interface {
+	GetGroups(workoutType string, groupText string, categoryCode string) ([]models.Group)
+}

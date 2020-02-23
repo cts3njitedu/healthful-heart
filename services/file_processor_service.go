@@ -33,7 +33,7 @@ func (process *FileProcessorService) ProcessWorkoutFile(file models.WorkoutFile)
 		fmt.Println(err)
 		return err;
 	}
-	fmt.Println("Why aren't you coming here")
+	
 	data, err := process.workFile.RetrieveFile(&newFile)
 
 	if err != nil {
@@ -50,17 +50,25 @@ func (process *FileProcessorService) ProcessWorkoutFile(file models.WorkoutFile)
 		return err;
 	}
 
-	fmt.Println("I am here you don't have to worry")
-
-	cell := excelFile.GetCellValue("Sheet1", "A1");
-
-	fmt.Println("I am here you don't have to worry")
-
-	// if err !=nil {
-	// 	fmt.Println(err)
-	// 	return err;
-	// }
-	fmt.Println("Cell value is", cell);
+	rows := excelFile.GetRows("Sheet1")
+	
+    for _, row := range rows {
+	
+        for _, colCell := range row {
+            fmt.Print(colCell, "\t")
+        }
+        fmt.Println()
+    }
+	
 	return nil
 
 }
+
+// func printRowNum(excelFile *excelize.File) {
+	
+// 	rows := excelFile.GetRows("Sheet");
+
+// 	for _, row := range rows {
+// 		fmt.Println(row)
+// 	}
+// }

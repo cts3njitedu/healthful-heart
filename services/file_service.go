@@ -31,6 +31,7 @@ func (fileService *FileService) UploadFile(file multipart.File, fileHeader * mul
 	if err != nil {
 		fmt.Println(err)
 	}
+
 	newFile := &models.WorkoutFile{
 		User_Id: userId,
 		File_Name: fileHeader.Filename,
