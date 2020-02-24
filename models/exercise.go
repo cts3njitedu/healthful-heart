@@ -1,23 +1,51 @@
 package models
 
+type WorkoutType struct {
+	Name string `gorm:"column:NAME"`
+	Category_Cd string `gorm:"column:CATEGORY_CD"`
+	Workout_Type_Cd string `gorm:"column:WORKOUT_TYPE_CD"`
+}
+
+type Category struct {
+	Category_Cd string `gorm:"column:CATEGORY_CD"`
+	Category_Name string `gorm:"column:CATEGORY_NAME"`
+}
+
+const (
+	BACK = "BK"
+	ABS = "AB"
+	CHEST = "CH"
+	TRICEPS = "TR"
+	LEGS = "LG"
+	BICEPS = "BC"
+	SHOULDERS = "SH"
+	DEFAULT = "DF"
+	PULLUPS = "BK16"
+	DIPS = "CH5"
+	BICYCLE = "AB3"
+	LEG_RAISES = "AB5"
+	SITUPS = "AB6"
+	INCLINE_ABS = "AB4"
+)
+
 
 func GetCategoryCodeFromName(catName string) (string) {
 	switch catName {
 	case "Back":
-		return "BACK"
+		return "BK"
 	case "Abs":
-		return "ABS"
+		return "AB"
 	case "Chest":
-		return "CHEST"
+		return "CH"
 	case "Triceps":
-		return "TRICEPS"
+		return "TR"
 	case "Legs":
-		return "LEGS"
+		return "LG"
 	case "Biceps":
-		return "BICEPS"
+		return "BC"
 	case "Shoulders":
-		return "SHLDRS"
+		return "SH"
 	default:
-		return "DEFAULT"
+		return "DF"
 	}
 }

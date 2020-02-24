@@ -12,7 +12,7 @@ import (
 	"github.com/cts3njitedu/healthful-heart/handlers"
 	"github.com/cts3njitedu/healthful-heart/validators"
 	"github.com/cts3njitedu/healthful-heart/utils"
-
+	"os"
 )
 
 var (
@@ -43,31 +43,40 @@ var (
 	rabbitService *services.RabbitService
 	workoutRepository *mongorepo.WorkfileRepository
 	fileProcessorService *services.FileProcessorService
-
+	workoutTypeRepository *mysqlrepo.WorkoutTypeRepository
+	workoutTypeService *services.WorkoutTypeService
+	groupParserService *services.GroupParserService
+	categoryRepository *mysqlrepo.CategoryRepository
 )
 
 func init() {
+	os.Setenv("TZ","UTC")
 	environmentUtiliy = utils.NewEnvironmentUtility()
 	mongoConnection = connections.NewMongoConnection(environmentUtiliy)
 	rabbitConnection = connections.NewRabbitConnection(environmentUtiliy)
 	pageRepository = mongorepo.NewPageRepository(mongoConnection, environmentUtiliy)
 	workoutRepository = mongorepo.NewWorkfileRepository(mongoConnection, environmentUtiliy)
+	categoryRepository = mysqlrepo.NewCategoryRepository(mysqlConnection)
 	restructureService = services.NewRestructurePageService()
 	fieldValidator = validators.NewFieldValidator()
 	pageValidator = validators.NewPageValidator(fieldValidator)
 	mapperUtil = mappers.NewMapper()
 	pageMerger = mergers.NewPageMerger()
-	mysqlConnection = connections.NewMysqlConnection()
+	mysqlConnection = connections.NewMysqlConnection(environmentUtiliy)
 	userRepository = mysqlrepo.NewUserRepository(mysqlConnection)
 	tokenRepository = mysqlrepo.NewTokenRepository(mysqlConnection)
 	fileRepository = mysqlrepo.NewFileRepository(mysqlConnection)
+	categoryRepository = mysqlrepo.NewCategoryRepository(mysqlConnection)
+	workoutTypeRepository = mysqlrepo.NewWorkoutTypeRepository(mysqlConnection)
 	hasher = security.NewPasswordHasher()
 	jwtToken = security.NewJwtToken(environmentUtiliy, hasher, tokenRepository, userRepository, mapperUtil)
 	credentialEnricher = enrichers.NewCredentialEnricher(hasher)
 	singupEnricher = enrichers.NewSignupEnrich();
 	enr:= []enrichers.IEnricher {singupEnricher}
 	enricherExecutor = enrichers.NewEnrichExecutor(enr)
-	fileProcessorService = services.NewFileProcessorService(workoutRepository, environmentUtiliy, fileRepository)
+	groupParserService = services.NewGroupParserService()
+	workoutTypeService = services.NewWorkoutTypeService(workoutTypeRepository,categoryRepository)
+	fileProcessorService = services.NewFileProcessorService(workoutRepository, fileRepository, workoutTypeService, groupParserService)
 	rabbitService = services.NewRabbitService(rabbitConnection, environmentUtiliy, fileProcessorService)
 	authenticationService = services.NewAuthenticationService(pageRepository, restructureService, enricherExecutor)
 	workflowService = services.NewWorkflowService(pageValidator, pageRepository, mapperUtil,enricherExecutor , credentialEnricher)

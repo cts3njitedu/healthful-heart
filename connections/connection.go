@@ -4,6 +4,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"database/sql"
 	"github.com/streadway/amqp"
+	"github.com/jinzhu/gorm"
 )
 
 type IMongoConnection interface {
@@ -13,6 +14,7 @@ type IMongoConnection interface {
 
 type IMysqlConnection interface {
 	GetDBObject() (*sql.DB, error)
+	GetGormConnection() (*gorm.DB, error)
 }
 
 type IRabbitConnection interface {

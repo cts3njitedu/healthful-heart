@@ -6,10 +6,11 @@ import (
 	"errors"
 	"database/sql"
 	"fmt"
+	"time"
 )
 const (
 	
-	SQL_INSERT_FILE string = "insert into WorkoutFile(file_name,file_path,status,user_id,version_nb) values (?,?,?,?,?)"
+	SQL_INSERT_FILE string = "insert into WorkoutFile(file_name,file_path,status,user_id,version_nb,cre_ts) values (?,?,?,?,?,?)"
 	SQL_UPDATE_FILE_STATUS string = "update WorkoutFile set version_nb=version_nb+1, status=? where version_nb=? and status=? and workout_file_id=?"
 	SQL_GET_FILE string = "select * from WorkoutFile where workout_file_id=?"
 )
@@ -36,7 +37,7 @@ func (repo *FileRepository) SaveFile(file *models.WorkoutFile) (error) {
 		panic(err.Error())
 	}
 
-	res, err := stmt.Exec(&file.File_Name, &file.File_Path, &file.Status, &file.User_Id, &file.Version_Nb)
+	res, err := stmt.Exec(&file.File_Name, &file.File_Path, &file.Status, &file.User_Id, &file.Version_Nb, time.Now())
 	
 	if err != nil {
 		panic(err.Error())

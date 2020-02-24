@@ -6,13 +6,14 @@ require (
 	cloud.google.com/go v0.50.1-0.20191227173528-aa359b4e5dfe // indirect
 	github.com/360EntSecGroup-Skylar/excelize v1.4.1
 	github.com/dgrijalva/jwt-go v3.2.1-0.20200107013213-dc14462fd587+incompatible
-	github.com/go-sql-driver/mysql v1.4.1-0.20200105051852-872394040611
+	github.com/go-sql-driver/mysql v1.4.1
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/golang/groupcache v0.0.0-20191227052852-215e87163ea7 // indirect
 	github.com/golang/protobuf v1.3.3-0.20191022195553-ed6926b37a63 // indirect
 	github.com/golang/snappy v0.0.2-0.20190904063534-ff6b7dc882cf // indirect
 	github.com/gorilla/context v1.1.2-0.20190627024605-8559d4a6b87e
 	github.com/gorilla/mux v1.7.4-0.20191121170500-49c01487a141
+	github.com/jinzhu/gorm v1.9.12
 	github.com/joho/godotenv v1.3.1-0.20191020202522-b09de681dcaf
 	github.com/justinas/alice v1.2.0
 	github.com/klauspost/compress v1.9.9-0.20200124135541-e75fbf67426b // indirect

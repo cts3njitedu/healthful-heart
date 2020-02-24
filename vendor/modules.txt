@@ -2,9 +2,11 @@
 cloud.google.com/go/compute/metadata
 # github.com/360EntSecGroup-Skylar/excelize v1.4.1
 github.com/360EntSecGroup-Skylar/excelize
+# github.com/davecgh/go-spew v1.1.1
+github.com/davecgh/go-spew/spew
 # github.com/dgrijalva/jwt-go v3.2.1-0.20200107013213-dc14462fd587+incompatible
 github.com/dgrijalva/jwt-go
-# github.com/go-sql-driver/mysql v1.4.1-0.20200105051852-872394040611
+# github.com/go-sql-driver/mysql v1.4.1
 github.com/go-sql-driver/mysql
 # github.com/go-stack/stack v1.8.0
 github.com/go-stack/stack
@@ -24,6 +26,10 @@ github.com/googleapis/gax-go/v2
 github.com/gorilla/context
 # github.com/gorilla/mux v1.7.4-0.20191121170500-49c01487a141
 github.com/gorilla/mux
+# github.com/jinzhu/gorm v1.9.12
+github.com/jinzhu/gorm
+# github.com/jinzhu/inflection v1.0.0
+github.com/jinzhu/inflection
 # github.com/joho/godotenv v1.3.1-0.20191020202522-b09de681dcaf
 github.com/joho/godotenv
 # github.com/justinas/alice v1.2.0
@@ -38,8 +44,12 @@ github.com/klauspost/compress/zstd/internal/xxhash
 github.com/mohae/deepcopy
 # github.com/pkg/errors v0.8.2-0.20191109102316-7f95ac13edff
 github.com/pkg/errors
+# github.com/pmezard/go-difflib v1.0.0
+github.com/pmezard/go-difflib/difflib
 # github.com/streadway/amqp v0.0.0-20200108173154-1c71cc93ed71
 github.com/streadway/amqp
+# github.com/stretchr/testify v1.4.0
+github.com/stretchr/testify/assert
 # github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c
 github.com/xdg/scram
 # github.com/xdg/stringprep v1.0.1-0.20180714160509-73f8eece6fdc
@@ -134,6 +144,7 @@ google.golang.org/api/transport/http
 google.golang.org/api/transport/http/internal/propagation
 # google.golang.org/appengine v1.6.5
 google.golang.org/appengine
+google.golang.org/appengine/cloudsql
 google.golang.org/appengine/internal
 google.golang.org/appengine/internal/app_identity
 google.golang.org/appengine/internal/base
@@ -182,3 +193,5 @@ google.golang.org/grpc/serviceconfig
 google.golang.org/grpc/stats
 google.golang.org/grpc/status
 google.golang.org/grpc/tap
+# gopkg.in/yaml.v2 v2.2.2
+gopkg.in/yaml.v2

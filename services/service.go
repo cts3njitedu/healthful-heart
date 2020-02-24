@@ -41,3 +41,10 @@ type IFileProcessorService interface {
 type IGroupParserService interface {
 	GetGroups(workoutType string, groupText string, categoryCode string) ([]models.Group)
 }
+
+type IWorkoutTypeService interface {
+	GetWorkoutTypeCode(categoryCd string, workoutTypeName string) string
+	GetCategoryNameFromCode(categoryCd string) (string, error)
+	GetCategoryCodeFromName(categoryName string) (string, error)
+
+}
