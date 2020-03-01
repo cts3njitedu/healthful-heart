@@ -18,13 +18,12 @@ func NewGroupParserService() *GroupParserService {
 
 
 func (parser *GroupParserService) GetGroups(workoutType string, groupText string, categoryCode string) ([]models.Group) {
-	fmt.Println("In get groups")
 	groups := strings.Split(groupText, ",");
+	fmt.Printf("Groups for work type %s are %s\n", workoutType, groupText)
 	var variation string
 	parsedGroups := make([]models.Group, 0, len(groups));
 	for i := range groups {
 		group := strings.TrimSpace(groups[i])
-		fmt.Println("This is the group", group)
 		groupInfos := strings.Split(group, "x");
 		var sets int
 		var repetitions int

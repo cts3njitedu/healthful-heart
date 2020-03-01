@@ -47,6 +47,9 @@ var (
 	workoutTypeService *services.WorkoutTypeService
 	groupParserService *services.GroupParserService
 	categoryRepository *mysqlrepo.CategoryRepository
+	workoutDayRepository *mysqlrepo.WorkoutDayRepository
+	workRepository *mysqlrepo.WorkoutRepository
+	groupRepository *mysqlrepo.GroupRepository
 )
 
 func init() {
@@ -68,6 +71,9 @@ func init() {
 	fileRepository = mysqlrepo.NewFileRepository(mysqlConnection)
 	categoryRepository = mysqlrepo.NewCategoryRepository(mysqlConnection)
 	workoutTypeRepository = mysqlrepo.NewWorkoutTypeRepository(mysqlConnection)
+	groupRepository = mysqlrepo.NewGroupRepository(mysqlConnection)
+	workRepository = mysqlrepo.NewWorkoutRepository(mysqlConnection, groupRepository)
+	workoutDayRepository = mysqlrepo.NewWorkoutDayRepository(mysqlConnection, workRepository)
 	hasher = security.NewPasswordHasher()
 	jwtToken = security.NewJwtToken(environmentUtiliy, hasher, tokenRepository, userRepository, mapperUtil)
 	credentialEnricher = enrichers.NewCredentialEnricher(hasher)
@@ -76,7 +82,7 @@ func init() {
 	enricherExecutor = enrichers.NewEnrichExecutor(enr)
 	groupParserService = services.NewGroupParserService()
 	workoutTypeService = services.NewWorkoutTypeService(workoutTypeRepository,categoryRepository)
-	fileProcessorService = services.NewFileProcessorService(workoutRepository, fileRepository, workoutTypeService, groupParserService)
+	fileProcessorService = services.NewFileProcessorService(workoutRepository, fileRepository, workoutTypeService, groupParserService,workoutDayRepository)
 	rabbitService = services.NewRabbitService(rabbitConnection, environmentUtiliy, fileProcessorService)
 	authenticationService = services.NewAuthenticationService(pageRepository, restructureService, enricherExecutor)
 	workflowService = services.NewWorkflowService(pageValidator, pageRepository, mapperUtil,enricherExecutor , credentialEnricher)

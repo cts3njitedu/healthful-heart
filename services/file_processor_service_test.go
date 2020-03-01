@@ -3,12 +3,14 @@ package services_test
 import (
 	"testing"
 	"fmt"
-	// "github.com/cts3njitedu/healthful-heart/services"
+	"github.com/cts3njitedu/healthful-heart/services"
 	"github.com/cts3njitedu/healthful-heart/models"
 	"github.com/stretchr/testify/assert"
 	"bytes"
 	"mime/multipart"
-	"io/ioutil"
+	"github.com/360EntSecGroup-Skylar/excelize"
+	"encoding/json"
+	"errors"
     // "os"
 )
 
@@ -113,7 +115,10 @@ func (serv WorkoutTypeServiceMock) GetCategoryCodeFromName(categoryName string) 
 		"Shoulders" : "SH",
 		"Triceps" : "TR",
 	}
-	return m[categoryName], nil
+	if m[categoryName] != "" {
+		return m[categoryName], nil
+	}	
+	return "", errors.New("doesn't exist")
 }
 func (serv WorkoutTypeServiceMock) GetCategoryNameFromCode(categoryCd string) (string, error){
 	m := map[string]string {
@@ -126,22 +131,36 @@ func (serv WorkoutTypeServiceMock) GetCategoryNameFromCode(categoryCd string) (s
 		"SH":"Shoulders", 
 		"TR":"Triceps",
 	}
-	return m[categoryCd], nil
+	if m[categoryCd] != "" {
+		return m[categoryCd], nil
+	}	
+	return "", errors.New("doesn't exist")
+}
+
+type WorkoutRepositoryMock struct {}
+
+func (repo WorkoutRepositoryMock) SaveWorkoutDay(workDay *models.WorkoutDay) error {
+	return nil
 }
 func TestConvertFileToWorkDayMap(t *testing.T) {
 	t.Run("Testing Convert File to WorkDay Map", func(t *testing.T) {
 		assert := assert.New(t)
-		// workFileRepo := WorkfileRepositoryMock{};
-		// workTypeServ := WorkoutTypeServiceMock{};
-		// fileMock := FileRepositoryMock{}
-		// service :=  services.NewGroupParserService()
-		// fileProcServ := services.NewFileProcessorService(workFileRepo,fileMock,workTypeServ, service)
-		data, err := ioutil.ReadFile("testfile.txt")
+		workFileRepo := WorkfileRepositoryMock{};
+		workTypeServ := WorkoutTypeServiceMock{};
+		fileMock := FileRepositoryMock{}
+		workDayRepo := WorkoutRepositoryMock{}
+		service :=  services.NewGroupParserService()
+		fileProcServ := services.NewFileProcessorService(workFileRepo,fileMock,workTypeServ, service, workDayRepo)
+		excelFile, err := excelize.OpenFile("WorkoutLogTest.xlsx")
 		if err != nil {
-			fmt.Println("File reading error", err)
-			return
+			fmt.Println(err)
 		}
-		fmt.Println("Contents of file:", string(data));
+		newFile := models.WorkoutFile{
+			User_Id: 123,
+		}
+		workoutDays := services.ConvertFileToWorkoutDay(excelFile, newFile, fileProcServ)
+		jsonString, _ := json.Marshal(workoutDays)
+		fmt.Printf("WorkDays: %v\n", string(jsonString))
 		assert.Equal("water","water","water")
 	})
 	

@@ -3,6 +3,7 @@ package mysqlrepo
 import (
 	"github.com/cts3njitedu/healthful-heart/models"
 	"time"
+	"github.com/jinzhu/gorm"
 )
 
 type IUserRepository interface {
@@ -27,4 +28,16 @@ type IWorkoutTypeRepository interface {
 
 type ICategoryRepository interface {
 	GetCategories() ([]models.Category, error) 
+}
+
+type IWorkoutDayRepository interface {
+	SaveWorkoutDay(workDay *models.WorkoutDay) error
+}
+
+type IWorkoutRepository interface {
+	SaveWorkout(workDay *models.Workout, tx *gorm.DB) error
+}
+
+type IGroupRepository interface {
+	SaveGroup(group *models.Group, tx *gorm.DB) error
 }

@@ -23,7 +23,7 @@ func NewFileService(workFile mongorepo.IWorkfileRepository,
 	return &FileService{workFile,environmentUtil, fileRepository, rabbitService}
 }
 
-func (fileService *FileService) UploadFile(file multipart.File, fileHeader * multipart.FileHeader, cred models.Credentials) error {
+func (fileService *FileService) UploadFile(file multipart.File, fileHeader * multipart.FileHeader, metaData models.WorkoutFile, cred models.Credentials) error {
 	fmt.Println("File Upload Endpoint Hit");
 	defer file.Close()
 	var userId int64
@@ -37,6 +37,7 @@ func (fileService *FileService) UploadFile(file multipart.File, fileHeader * mul
 		File_Name: fileHeader.Filename,
 		Status: models.IMPORT_IN_PROGRESS,
 		Version_Nb: 1,
+		Location_Id: metaData.Location_Id,
 
 	}
 	// helper:=int32(15000)

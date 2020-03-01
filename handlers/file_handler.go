@@ -6,6 +6,7 @@ import (
 	"github.com/cts3njitedu/healthful-heart/services"
 	"github.com/cts3njitedu/healthful-heart/models"
 	"github.com/gorilla/context"
+	"strconv"
 )
 
 type FileHandler struct {
@@ -32,7 +33,10 @@ func (fHandler *FileHandler) UploadFile(w http.ResponseWriter, r *http.Request) 
 
 	file, handler, err := r.FormFile("myFile");
 
-
+	location, _ := strconv.ParseInt(r.FormValue("location"),10, 64)
+	metaData := models.WorkoutFile{
+		Location_Id : location,
+	}
 	if err != nil {
 		fmt.Println("Error Retrieving the file")
 		fmt.Println(err)
@@ -40,7 +44,7 @@ func (fHandler *FileHandler) UploadFile(w http.ResponseWriter, r *http.Request) 
 	}
 	defer file.Close()
 
-	fHandler.fileService.UploadFile(file,handler,creds)
+	fHandler.fileService.UploadFile(file,handler,metaData, creds)
 	
 	w.Write([]byte(`{"message": "In about page"}`))
 

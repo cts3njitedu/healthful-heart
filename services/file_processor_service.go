@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"github.com/360EntSecGroup-Skylar/excelize"
 	"strings"
+	"time"
 )
 
 
@@ -17,13 +18,15 @@ type FileProcessorService struct {
 	fileRepository mysqlrepo.IFileRepository
 	workoutTypeService IWorkoutTypeService
 	groupParserService IGroupParserService
+	workoutDayRepository mysqlrepo.IWorkoutDayRepository
 }
 
 func NewFileProcessorService(workFile mongorepo.IWorkfileRepository,
 	fileRepository mysqlrepo.IFileRepository,
-	workoutTypeService IWorkoutTypeService,groupParserService IGroupParserService) *FileProcessorService {
+	workoutTypeService IWorkoutTypeService,
+	groupParserService IGroupParserService, workoutDayRepository mysqlrepo.IWorkoutDayRepository) *FileProcessorService {
 
-		return &FileProcessorService{workFile, fileRepository, workoutTypeService, groupParserService}
+		return &FileProcessorService{workFile, fileRepository, workoutTypeService, groupParserService, workoutDayRepository}
 }
 
 func (process *FileProcessorService) ProcessWorkoutFile(file models.WorkoutFile) (error) {
@@ -52,40 +55,69 @@ func (process *FileProcessorService) ProcessWorkoutFile(file models.WorkoutFile)
 		return err;
 	}
 
-	ConvertFileToWorkoutDay(excelFile, process)
+	workoutDayMap := ConvertFileToWorkoutDay(excelFile, newFile, process)
 	
+	for w := range workoutDayMap {
+		workoutDay := workoutDayMap[w]
+		process.workoutDayRepository.SaveWorkoutDay(workoutDay)
+	}
+
 	return nil
 
 }
 
-func ConvertFileToWorkoutDay(excelFile *excelize.File, process *FileProcessorService) (map[int]*models.WorkoutDay) {
+func ConvertFileToWorkoutDay(excelFile *excelize.File, metaData models.WorkoutFile, process *FileProcessorService) (map[int]*models.WorkoutDay) {
 	rows := excelFile.GetRows("Sheet1")
 	workoutMap := make(map[int]*models.WorkoutDay)
 	var categoryCdState string
 	var workoutType string
+	var workoutName string
     for r, row := range rows {
 	
         for c, colCell := range row {
 			cellValue := strings.TrimSpace(colCell)
+			if len(cellValue) == 0 {
+				continue;
+			}
             if r==0 && c>0 {
+				date, err := time.Parse("1/2/2006", cellValue)
+				if err != nil {
+					fmt.Println(err)
+					continue;
+				}
+				dateFormat := date.Format("2006-01-02 15:04:05")
+				fmt.Printf("Date Value: %+v\n", dateFormat)
 				workoutDay := &models.WorkoutDay {
-					Workout_Date: cellValue,
+					Workout_Date: dateFormat,
+					User_Id: metaData.User_Id,
+					Location_Id: metaData.Location_Id,
 				}
 				workoutMap[c] = workoutDay
 			} else if r>0 && c==0 {
+				fmt.Printf("Row Value: %+v, Cell Value: %+v\n",r, cellValue)
 				categoryCd, err := process.workoutTypeService.GetCategoryCodeFromName(cellValue)
 				if err == nil {
 					categoryCdState = categoryCd
+					fmt.Printf("Category Code State: %v\n", categoryCdState);
 				} else {
 					workoutType = process.workoutTypeService.GetWorkoutTypeCode(categoryCdState, cellValue)
+					if len(workoutType) == 0 {
+						fmt.Printf("Missing work type code: %v", cellValue)
+					}
 					workoutType = strings.TrimSpace(workoutType)
+					workoutName = cellValue
+					fmt.Printf("Category: %v WorkoutType: %v\n", categoryCdState, workoutType)
 				}
 			} else if r>0 && c>0 {
 				if len(cellValue) > 0 {
 					workoutDay := workoutMap[c]
+					if workoutDay == nil {
+						continue;
+					}
 					groups := process.groupParserService.GetGroups(workoutType, cellValue, categoryCdState)
 					newWorkout := models.Workout {
 						Workout_Type_Cd: workoutType,
+						Workout_Name: workoutName,
 						Groups: groups,
 					}
 					if workoutDay.Workouts != nil {

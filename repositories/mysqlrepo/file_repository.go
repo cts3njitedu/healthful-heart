@@ -10,7 +10,7 @@ import (
 )
 const (
 	
-	SQL_INSERT_FILE string = "insert into WorkoutFile(file_name,file_path,status,user_id,version_nb,cre_ts) values (?,?,?,?,?,?)"
+	SQL_INSERT_FILE string = "insert into WorkoutFile(file_name,file_path,status,user_id,version_nb,cre_ts,location_id) values (?,?,?,?,?,?,?)"
 	SQL_UPDATE_FILE_STATUS string = "update WorkoutFile set version_nb=version_nb+1, status=? where version_nb=? and status=? and workout_file_id=?"
 	SQL_GET_FILE string = "select * from WorkoutFile where workout_file_id=?"
 )
@@ -37,7 +37,7 @@ func (repo *FileRepository) SaveFile(file *models.WorkoutFile) (error) {
 		panic(err.Error())
 	}
 
-	res, err := stmt.Exec(&file.File_Name, &file.File_Path, &file.Status, &file.User_Id, &file.Version_Nb, time.Now())
+	res, err := stmt.Exec(&file.File_Name, &file.File_Path, &file.Status, &file.User_Id, &file.Version_Nb, time.Now(), &file.Location_Id)
 	
 	if err != nil {
 		panic(err.Error())
@@ -100,7 +100,7 @@ func (repo *FileRepository) UpdateFileStatus(file *models.WorkoutFile, newStatus
 
 	row := tx.QueryRow(SQL_GET_FILE, file.Workout_File_Id)
 
-	err=row.Scan(&newWorkoutFile.Workout_File_Id, &newWorkoutFile.File_Name, &newWorkoutFile.File_Path, &newWorkoutFile.Status, &newWorkoutFile.User_Id, &newWorkoutFile.Version_Nb, &newWorkoutFile.Cre_Ts, &newWorkoutFile.Mod_Ts);
+	err=row.Scan(&newWorkoutFile.Workout_File_Id, &newWorkoutFile.File_Name, &newWorkoutFile.File_Path, &newWorkoutFile.Status, &newWorkoutFile.User_Id, &newWorkoutFile.Version_Nb, &newWorkoutFile.Cre_Ts, &newWorkoutFile.Mod_Ts, &newWorkoutFile.Location_Id);
 	fmt.Printf("File being queries: %+v", newWorkoutFile)
 	if err != nil {
 		tx.Rollback()
