@@ -50,6 +50,9 @@ var (
 	workoutDayRepository *mysqlrepo.WorkoutDayRepository
 	workRepository *mysqlrepo.WorkoutRepository
 	groupRepository *mysqlrepo.GroupRepository
+	locationRepository *mysqlrepo.LocationRepository
+	locationService *services.LocationService
+	workoutService *services.WorkoutService
 )
 
 func init() {
@@ -66,6 +69,7 @@ func init() {
 	mapperUtil = mappers.NewMapper()
 	pageMerger = mergers.NewPageMerger()
 	mysqlConnection = connections.NewMysqlConnection(environmentUtiliy)
+	locationRepository = mysqlrepo.NewLocationRepository(mysqlConnection)
 	userRepository = mysqlrepo.NewUserRepository(mysqlConnection)
 	tokenRepository = mysqlrepo.NewTokenRepository(mysqlConnection)
 	fileRepository = mysqlrepo.NewFileRepository(mysqlConnection)
@@ -80,6 +84,8 @@ func init() {
 	singupEnricher = enrichers.NewSignupEnrich();
 	enr:= []enrichers.IEnricher {singupEnricher}
 	enricherExecutor = enrichers.NewEnrichExecutor(enr)
+	locationService = services.NewLocationService(locationRepository)
+	workoutService = services.NewWorkoutService(locationService, workoutDayRepository)
 	groupParserService = services.NewGroupParserService()
 	workoutTypeService = services.NewWorkoutTypeService(workoutTypeRepository,categoryRepository)
 	fileProcessorService = services.NewFileProcessorService(workoutRepository, fileRepository, workoutTypeService, groupParserService,workoutDayRepository)
@@ -114,4 +120,8 @@ func GetAboutHandler() *handlers.AboutHandler {
 
 func GetFileHandler() *handlers.FileHandler {
 	return handlers.NewFileHandler(fileService)
+}
+
+func GetWorkoutHandler() *handlers.WorkoutHandler {
+	return handlers.NewWorkoutHandler(workoutService)
 }

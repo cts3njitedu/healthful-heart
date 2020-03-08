@@ -142,6 +142,10 @@ type WorkoutRepositoryMock struct {}
 func (repo WorkoutRepositoryMock) SaveWorkoutDay(workDay *models.WorkoutDay) error {
 	return nil
 }
+
+func (repo WorkoutRepositoryMock) GetWorkoutDays(userId string) ([]models.WorkoutDay, error) {
+	return nil, nil
+}
 func TestConvertFileToWorkDayMap(t *testing.T) {
 	t.Run("Testing Convert File to WorkDay Map", func(t *testing.T) {
 		assert := assert.New(t)

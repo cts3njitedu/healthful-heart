@@ -48,3 +48,11 @@ type IWorkoutTypeService interface {
 	GetCategoryCodeFromName(categoryName string) (string, error)
 
 }
+
+type ILocationService interface {
+	GetLocation(locationId int64) (models.Location, error)
+}
+
+type IWorkoutService interface {
+	GetWorkoutDays(queryParams models.QueryParams, cred models.Credentials) ([]models.WorkoutDay, error)
+}

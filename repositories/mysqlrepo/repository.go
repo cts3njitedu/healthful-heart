@@ -32,6 +32,7 @@ type ICategoryRepository interface {
 
 type IWorkoutDayRepository interface {
 	SaveWorkoutDay(workDay *models.WorkoutDay) error
+	GetWorkoutDays(userId string) ([]models.WorkoutDay, error)
 }
 
 type IWorkoutRepository interface {
@@ -40,4 +41,8 @@ type IWorkoutRepository interface {
 
 type IGroupRepository interface {
 	SaveGroup(group *models.Group, tx *gorm.DB) error
+}
+
+type ILocationRepository interface {
+	GetLocations() ([]models.Location, error)
 }

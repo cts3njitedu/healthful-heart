@@ -9,6 +9,7 @@ import (
 )
 
 const SQL_QUERY_WORKOUT_DAY string = "user_id = ? AND location_id = ? and workout_date = ?"
+const SQL_QUERY_WORKOUT_DAYS_USER_ID string = "user_id = ?"
 type WorkoutDayRepository struct {
 	connection connections.IMysqlConnection
 	workoutRepo IWorkoutRepository
@@ -16,6 +17,17 @@ type WorkoutDayRepository struct {
 
 func NewWorkoutDayRepository(connection connections.IMysqlConnection, workoutRepo IWorkoutRepository) * WorkoutDayRepository {
 	return &WorkoutDayRepository{connection, workoutRepo}
+}
+
+func (repo * WorkoutDayRepository) GetWorkoutDays(userId string) ([]models.WorkoutDay, error) {
+	var workoutDays []models.WorkoutDay
+	db, err := repo.connection.GetGormConnection();
+	defer db.Close()
+	if err != nil {
+		panic(err.Error())
+	}
+	db.Table("WorkoutDay").Where(SQL_QUERY_WORKOUT_DAYS_USER_ID, userId).Order("WORKOUT_DATE").Find(&workoutDays)
+	return workoutDays, nil;
 }
 
 func (repo * WorkoutDayRepository) SaveWorkoutDay(workDay *models.WorkoutDay) error {
