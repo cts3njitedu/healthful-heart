@@ -6,16 +6,16 @@ type WorkoutDay struct {
 	User_Id int64 `gorm:"column:USER_ID" json:"userId"`
 	Location_Id int64 `gorm:"column:LOCATION_ID" json:"-"`
 	Workout_Date string `gorm:"column:WORKOUT_DATE" json:"-"`
-	Month string `json:"month"`
-	MonthId int `json:"monthId"`
-	Year int `json:"year"`
-	NumberOfDays int `json:"numberOfDays"`
-	Day int `json:"day"`
+	Month string `gorm:"-" json:"month"`
+	MonthId int `gorm:"-" json:"monthId"`
+	Year int `gorm:"-" json:"year"`
+	NumberOfDays int `gorm:"-" json:"numberOfDays"`
+	Day int `gorm:"-" json:"day"`
 	Cre_Ts *string `gorm:"column:CRE_TS" json:"-"`
 	Mod_Ts *string `gorm:"column:MOD_TS" json:"-"`
 	Del_Ts *string `gorm:"column:DEL_TS" json:"-"`
-	Workouts []Workout `json:"-"`
-	Location Location `json:"location"`
+	Workouts []Workout `gorm:"-" json:"-"`
+	Location Location `gorm:"-" json:"location"`
 
 }
 
