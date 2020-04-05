@@ -20,7 +20,7 @@ type WorkoutDay struct {
 }
 
 type Workout struct {
-	Workout_Id int64 `gorm:"column:WORKOUT_ID"`
+	Workout_Id int64 `gorm:"column:WORKOUT_ID;primary_key;not null; auto_increment"`
 	Workout_Day_Id int64 `gorm:"column:WORKOUT_DAY_ID"`
 	Workout_Type_Cd string `gorm:"column:WORKOUT_TYPE_CD"`
 	Workout_Name string `gorm:"-"`
@@ -31,7 +31,7 @@ type Workout struct {
 }
 
 type Group struct {
-	Group_Id int64 `gorm:"column:GROUP_ID"`
+	Group_Id int64 `gorm:"column:GROUP_ID;primary_key;not null; auto_increment"`
 	Workout_Id int64 `gorm:"column:WORKOUT_ID"`
 	Workout_Day_Id int64 `gorm:"column:WORKOUT_DAY_ID"`
 	Sequence int64 `gorm:"column:SEQUENCE"`

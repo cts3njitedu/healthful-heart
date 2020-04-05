@@ -45,26 +45,24 @@ func (repo * WorkoutDayRepository) SaveWorkoutDay(workDay *models.WorkoutDay) er
 		var workDayQuery *models.WorkoutDay = &models.WorkoutDay{}
 		tx.Table("WorkoutDay").Where(SQL_QUERY_WORKOUT_DAY, workDay.User_Id, workDay.Location_Id, workDay.Workout_Date).
 			First(&workDayQuery)
-		if tx.Error != nil {
-			tx.Rollback()
-			return tx.Error;
-		}
+
 		if workDayQuery.Workout_Day_Id != 0 {
 			workDay.Workout_Day_Id = workDayQuery.Workout_Day_Id;
 			ret := tx.Table("WorkoutDay").
 				Where("workout_day_id = ?",workDay.Workout_Day_Id).
 				Update("mod_ts", time.Now());
 			fmt.Printf("Rows affected: %d, Workout Day Id: %d\n",ret.RowsAffected,workDay.Workout_Day_Id)
-			if tx.Error != nil {
-				fmt.Println(tx.Error)
-				tx.Rollback()
-				return tx.Error;
-			}
+		
 		} else {
 			t := time.Now()
 			creTs := t.Format("2006-01-02 15:04:05")
 			workDay.Cre_Ts = &creTs;
-			tx.Table("WorkoutDay").Create(&workDay);
+			err := tx.Table("WorkoutDay").Create(&workDay).Error;
+			if err != nil {
+				fmt.Printf("WorkoutDay Error: %+v\n",err)
+				tx.Rollback()
+				return tx.Error;
+			}
 			fmt.Printf("Created workout day id: %d\n", workDay.Workout_Day_Id)
 		}
 

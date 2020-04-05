@@ -26,30 +26,22 @@ func (repo * WorkoutRepository) SaveWorkout(workDay *models.Workout, tx *gorm.DB
 		  tx.Rollback()
 		}
 	}()
-	tx.Table("workout").Where(SQL_QUERY_WORKOUT, workDay.Workout_Day_Id, workDay.Workout_Type_Cd).
+	tx.Table("Workout").Where(SQL_QUERY_WORKOUT, workDay.Workout_Day_Id, workDay.Workout_Type_Cd).
 			First(&workoutQuery);
-	if tx.Error != nil {
-		fmt.Printf("Workout2 Error: %+v\n",workDay)
-		tx.Rollback()
-		return tx.Error;
-	}
+
 	if workoutQuery.Workout_Id != 0 {
 		workDay.Workout_Id = workoutQuery.Workout_Id
-		ret := tx.Table("workout").
+		ret := tx.Table("Workout").
 			Where("workout_id = ?",workDay.Workout_Id).
 			Update("mod_ts", time.Now());
 		fmt.Printf("Rows affected: %d, Workout Id: %d\n",ret.RowsAffected,workDay.Workout_Id)	
-		if tx.Error != nil {
-			tx.Rollback()
-			return tx.Error;
-		}
 	} else {
 		t := time.Now()
 		creTs := t.Format("2006-01-02 15:04:05")
 		workDay.Cre_Ts = &creTs;
-		tx.Table("workout").Create(&workDay);
-		if tx.Error != nil {
-			fmt.Printf("Workout Error: %+v\n",workDay)
+		err := tx.Table("Workout").Create(&workDay).Error;
+		if err != nil {
+			fmt.Printf("Workout Error: %+v\n",err)
 			tx.Rollback()
 			return tx.Error;
 		}
