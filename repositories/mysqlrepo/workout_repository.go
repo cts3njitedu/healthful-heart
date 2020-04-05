@@ -47,7 +47,7 @@ func (repo * WorkoutRepository) SaveWorkout(workDay *models.Workout, tx *gorm.DB
 		t := time.Now()
 		creTs := t.Format("2006-01-02 15:04:05")
 		workDay.Cre_Ts = &creTs;
-		// fmt.Printf("Workout data: %+v\n", workDay)
+		fmt.Printf("Workout data: %+v\n", workDay)
 		tx.Table("Workout").Create(&workDay);
 		if tx.Error != nil {
 			fmt.Printf("Workout Error: %+v\n",workDay)
