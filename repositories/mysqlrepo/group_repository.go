@@ -25,6 +25,7 @@ func (repo *GroupRepository) SaveGroup(group *models.Group, tx *gorm.DB) error {
 	t := time.Now()
 	creTs := t.Format("2006-01-02 15:04:05")
 	group.Cre_Ts = &creTs;
+	group.Version_Nb = 1;
 	err := tx.Table("Group").Create(&group).Error;
 	if err != nil {
 		fmt.Printf("Group error: %+v\n", err)

@@ -16,6 +16,8 @@ type WorkoutDay struct {
 	Del_Ts *string `gorm:"column:DEL_TS" json:"-"`
 	Workouts []Workout `gorm:"-" json:"-"`
 	Location Location `gorm:"-" json:"location"`
+	Version_Nb int64 `gorm:"column:VERSION_NB" json:"versionNb"`
+	Workout_File_Id int64 `gorm:"column:WORKOUT_FILE_ID" json:"fileId"`
 
 }
 
@@ -28,6 +30,7 @@ type Workout struct {
 	Mod_Ts *string `gorm:"column:MOD_TS"`
 	Del_Ts *string `gorm:"column:DEL_TS"`
 	Groups []Group `gorm:"-"`
+	Version_Nb int64 `gorm:"column:VERSION_NB" json:"versionNb"`
 }
 
 type Group struct {
@@ -42,6 +45,7 @@ type Group struct {
 	Cre_Ts *string `gorm:"column:CRE_TS"`
 	Mod_Ts *string `gorm:"column:MOD_TS"`
 	Del_Ts *string `gorm:"column:DEL_TS"`
+	Version_Nb int64 `gorm:"column:VERSION_NB" json:"versionNb"`
 }
 
 type Location struct {

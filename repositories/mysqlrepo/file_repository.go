@@ -101,7 +101,7 @@ func (repo *FileRepository) UpdateFileStatus(file *models.WorkoutFile, newStatus
 	row := tx.QueryRow(SQL_GET_FILE, file.Workout_File_Id)
 
 	err=row.Scan(&newWorkoutFile.Workout_File_Id, &newWorkoutFile.File_Name, &newWorkoutFile.File_Path, &newWorkoutFile.Status, &newWorkoutFile.User_Id, &newWorkoutFile.Version_Nb, &newWorkoutFile.Cre_Ts, &newWorkoutFile.Mod_Ts, &newWorkoutFile.Location_Id);
-	fmt.Printf("File being queries: %+v", newWorkoutFile)
+	fmt.Printf("File being queries: %+v\n", newWorkoutFile)
 	if err != nil {
 		tx.Rollback()
 		if err == sql.ErrNoRows {

@@ -49,14 +49,15 @@ func (repo * WorkoutDayRepository) SaveWorkoutDay(workDay *models.WorkoutDay) er
 		if workDayQuery.Workout_Day_Id != 0 {
 			workDay.Workout_Day_Id = workDayQuery.Workout_Day_Id;
 			ret := tx.Table("WorkoutDay").
-				Where("workout_day_id = ?",workDay.Workout_Day_Id).
-				Update("mod_ts", time.Now());
+				Where("workout_day_id = ? AND version_nb = ?",workDay.Workout_Day_Id, workDayQuery.Version_Nb).
+				Updates(map[string]interface{}{"mod_ts": time.Now(), "version_nb": workDayQuery.Version_Nb + 1});
 			fmt.Printf("Rows affected: %d, Workout Day Id: %d\n",ret.RowsAffected,workDay.Workout_Day_Id)
 		
 		} else {
 			t := time.Now()
 			creTs := t.Format("2006-01-02 15:04:05")
 			workDay.Cre_Ts = &creTs;
+			workDay.Version_Nb = 1;
 			err := tx.Table("WorkoutDay").Create(&workDay).Error;
 			if err != nil {
 				fmt.Printf("WorkoutDay Error: %+v\n",err)
