@@ -3,6 +3,7 @@ package mergers
 import (
 
 	"github.com/cts3njitedu/healthful-heart/models"
+	"strconv"
 )
 
 
@@ -37,4 +38,43 @@ func (merge *PageMerger) MergeRequestPageToPage(requestPage *models.Page, page m
 	}
 
 
+}
+
+func MergeLocationToSection(section models.Section, location models.Location) (models.Section) {
+	for f := range section.Fields {
+		var field  = &section.Fields[f]
+		if field.FieldId == "LOCATION" {
+			field.Value = location.Location;
+		} else if field.FieldId == "ZIPCODE" {
+			field.Value = location.Zipcode
+		} else if field.FieldId == "STATE" {
+			field.Value = location.State
+		} else if field.FieldId == "CITY" {
+			field.Value = location.City
+		} else if field.FieldId == "COUNTRY" {
+			field.Value = location.Country
+		} else if field.FieldId == "NAME" {
+			field.Value = location.Name
+		}
+	}	
+	return section
+}
+
+func MergeWorkDayAndLocationsToSection(section models.Section, workoutDay models.WorkoutDay, locations []models.Location) (models.Section) {
+	for f := range section.Fields {
+		var field  = &section.Fields[f]
+		if field.FieldId == "LOCATIONS" {
+			items := make([]models.Item, 0, len(locations))
+			for _, location := range locations {
+				item := models.Item{};
+				item.Id = strconv.FormatInt(location.Location_Id,10)
+				item.Item = location.Name + " - " + location.Location
+				items = append(items, item);
+			}
+			field.Items = items;	
+		} else if (field.FieldId == "WORKOUT_DATE") {
+			field.Value = workoutDay.Workout_Date
+		}
+	} 
+	return section;
 }

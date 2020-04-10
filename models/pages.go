@@ -17,6 +17,7 @@ type Section struct {
 	SectionId string `bson:"sectionId" json:"sectionId"`
 	Fields []Field	`bson:"fields" json:"fields"`
 	Errors []string `bson:"errors" json:"errors"`
+	IsHidden bool `bson:"isHidden" json:"isHidden"`
 }
 
 
@@ -42,7 +43,7 @@ type Field struct {
 }
 
 type Item struct {
-	ItemId string `bson:"itemId" json:"itemId"`
+	Id string `bson:"id" json:"id"`
 	Item string `bson:"item" json:"item"`
 }
 

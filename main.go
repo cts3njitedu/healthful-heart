@@ -30,9 +30,11 @@ func main() {
 	validateTokenHandler := factories.GetTokenHandler().ValidateToken;
 	uploadFile := http.HandlerFunc(factories.GetFileHandler().UploadFile);
 	getWorkoutDays := http.HandlerFunc(factories.GetWorkoutHandler().GetWorkoutDays);
+	getWorkoutDaysPage := http.HandlerFunc(factories.GetWorkoutHandler().GetWorkoutDaysPage);
 	r.Handle("/upload", alice.New(handlers.Logging, validateTokenHandler).Then(uploadFile)).Methods("POST")
 	r.Handle("/about", alice.New(handlers.Logging, validateTokenHandler).Then(getAboutPage)).Methods("GET")
 	r.Handle("/calendar", alice.New(handlers.Logging, validateTokenHandler).Then(getWorkoutDays)).Methods("GET")
+	r.Handle("/workoutDays/{date}", alice.New(handlers.Logging, validateTokenHandler).Then(getWorkoutDaysPage)).Methods("GET")
 	r.Handle("/login", alice.New(handlers.Logging).Then(getLoginPage)).Methods("GET");
 	r.Handle("/login", alice.New(handlers.Logging, postLoginPage).Then(tokenHandler)).Methods("POST");
 

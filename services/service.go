@@ -51,8 +51,10 @@ type IWorkoutTypeService interface {
 
 type ILocationService interface {
 	GetLocation(locationId int64) (models.Location, error)
+	GetLocations() ([]models.Location, error)
 }
 
 type IWorkoutService interface {
 	GetWorkoutDays(queryParams models.QueryParams, cred models.Credentials) ([]models.WorkoutDay, error)
+	GetWorkoutDaysPage(queryParams models.QueryParams, cred models.Credentials) (models.HeartResponse, error)
 }

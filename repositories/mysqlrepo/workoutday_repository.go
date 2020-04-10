@@ -19,6 +19,21 @@ func NewWorkoutDayRepository(connection connections.IMysqlConnection, workoutRep
 	return &WorkoutDayRepository{connection, workoutRepo}
 }
 
+func (repo *WorkoutDayRepository) GetWorkoutDaysByParams(queryOptions models.QueryOptions) ([]models.WorkoutDay, error) {
+	var workoutDays []models.WorkoutDay
+	db, err := repo.connection.GetGormConnection();
+	defer db.Close()
+	if err != nil {
+		panic(err.Error())
+	}
+	var whereClause map[string]interface{};
+	if queryOptions.Where != nil {
+		whereClause = queryOptions.Where;
+	}
+	db.Table("WorkoutDay").Where(whereClause).Order("WORKOUT_DATE").Find(&workoutDays)
+	return workoutDays, nil;
+
+}
 func (repo * WorkoutDayRepository) GetWorkoutDays(userId string) ([]models.WorkoutDay, error) {
 	var workoutDays []models.WorkoutDay
 	db, err := repo.connection.GetGormConnection();

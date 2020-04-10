@@ -85,7 +85,7 @@ func init() {
 	enr:= []enrichers.IEnricher {singupEnricher}
 	enricherExecutor = enrichers.NewEnrichExecutor(enr)
 	locationService = services.NewLocationService(locationRepository)
-	workoutService = services.NewWorkoutService(locationService, workoutDayRepository)
+	workoutService = services.NewWorkoutService(locationService, workoutDayRepository, workRepository, pageRepository)
 	groupParserService = services.NewGroupParserService()
 	workoutTypeService = services.NewWorkoutTypeService(workoutTypeRepository,categoryRepository)
 	fileProcessorService = services.NewFileProcessorService(workoutRepository, fileRepository, workoutTypeService, groupParserService,workoutDayRepository)
