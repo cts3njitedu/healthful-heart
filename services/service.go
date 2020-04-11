@@ -51,7 +51,7 @@ type IWorkoutTypeService interface {
 
 type ILocationService interface {
 	GetLocation(locationId int64) (models.Location, error)
-	GetLocations() ([]models.Location, error)
+	GetLocations() (map[int64]models.Location, error)
 }
 
 type IWorkoutService interface {

@@ -60,7 +60,7 @@ func MergeLocationToSection(section models.Section, location models.Location) (m
 	return section
 }
 
-func MergeWorkDayAndLocationsToSection(section models.Section, workoutDay models.WorkoutDay, locations []models.Location) (models.Section) {
+func MergeWorkDayAndLocationsToSection(section models.Section, workoutDay models.WorkoutDay, locations map[int64]models.Location) (models.Section) {
 	for f := range section.Fields {
 		var field  = &section.Fields[f]
 		if field.FieldId == "LOCATIONS" {

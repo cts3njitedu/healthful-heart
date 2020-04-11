@@ -27,12 +27,7 @@ func(serv * LocationService) GetLocation(locationId int64) (models.Location, err
 	return models.Location{}, errors.New("Unable to find location")
 }
 
-func (serv * LocationService) GetLocations() ([]models.Location, error) {
-	locations := make([]models.Location, 0, len(locationMap));
-
-	for _, location := range locationMap {
-		locations = append(locations, location);
-	}
-
-	return locations, nil
+func (serv * LocationService) GetLocations() (map[int64]models.Location, error) {
+	
+	return locationMap, nil
 }

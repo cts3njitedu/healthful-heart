@@ -20,6 +20,7 @@ func CloneSection(section models.Section) (models.Section) {
 	newSection := models.Section{};
 	newSection.Id = section.Id;
 	newSection.ParentId = section.ParentId;
+	newSection.SectionId = section.SectionId;
 	newSection.Errors = append(section.Errors[:0:0], section.Errors...)
 	newFields := make([]models.Field, 0, len(section.Fields))
 	for _, field := range section.Fields {
