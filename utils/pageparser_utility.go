@@ -34,6 +34,7 @@ func CloneSection(section models.Section) (models.Section) {
 func CloneField(field models.Field) (models.Field) {
 	newField  := models.Field{};
 	newField.Id = field.Id;
+	newField.Title = field.Title;
 	newField.FieldId = field.FieldId
 	newField.ParentId = field.ParentId;
 	newField.Name = field.Name;
