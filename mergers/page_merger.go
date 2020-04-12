@@ -3,7 +3,6 @@ package mergers
 import (
 
 	"github.com/cts3njitedu/healthful-heart/models"
-	"strconv"
 )
 
 
@@ -60,19 +59,10 @@ func MergeLocationToSection(section models.Section, location models.Location) (m
 	return section
 }
 
-func MergeWorkDayAndLocationsToSection(section models.Section, workoutDay models.WorkoutDay, locations map[int64]models.Location) (models.Section) {
+func MergeWorkDayToSection(section models.Section, workoutDay models.WorkoutDay) (models.Section) {
 	for f := range section.Fields {
 		var field  = &section.Fields[f]
-		if field.FieldId == "LOCATIONS" {
-			items := make([]models.Item, 0, len(locations))
-			for _, location := range locations {
-				item := models.Item{};
-				item.Id = strconv.FormatInt(location.Location_Id,10)
-				item.Item = location.Name + " - " + location.Location
-				items = append(items, item);
-			}
-			field.Items = items;	
-		} else if (field.FieldId == "WORKOUT_DATE") {
+		if (field.FieldId == "WORKOUT_DATE") {
 			field.Value = workoutDay.Workout_Date
 		}
 	} 

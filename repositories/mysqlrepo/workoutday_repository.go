@@ -6,6 +6,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"time"
 	"fmt"
+	"strings"
 )
 
 const SQL_QUERY_WORKOUT_DAY string = "user_id = ? AND location_id = ? and workout_date = ?"
@@ -18,7 +19,27 @@ type WorkoutDayRepository struct {
 func NewWorkoutDayRepository(connection connections.IMysqlConnection, workoutRepo IWorkoutRepository) * WorkoutDayRepository {
 	return &WorkoutDayRepository{connection, workoutRepo}
 }
+func (repo *WorkoutDayRepository) GetWorkoutDaysSpecifyColumns(queryOptions models.QueryOptions) ([]models.WorkoutDay, error) {
+	var workoutDays []models.WorkoutDay
+	db, err := repo.connection.GetGormConnection();
+	defer db.Close()
+	if err != nil {
+		panic(err.Error())
+	}
+	var whereClause map[string]interface{};
+	if queryOptions.Where != nil {
+		whereClause = queryOptions.Where;
+	}
+	selectClause := "*"
+	if queryOptions.Select != nil {
+		selectClause = strings.Join(queryOptions.Select, ",")
+		selectClause = strings.ToUpper(selectClause)
+	}
+	fmt.Printf("query: %+v\n", selectClause)
+	db.Table("WorkoutDay").Select(selectClause).Where(whereClause).Order("WORKOUT_DATE").Find(&workoutDays)
+	return workoutDays, nil;
 
+} 
 func (repo *WorkoutDayRepository) GetWorkoutDaysByParams(queryOptions models.QueryOptions) ([]models.WorkoutDay, error) {
 	var workoutDays []models.WorkoutDay
 	db, err := repo.connection.GetGormConnection();

@@ -34,6 +34,7 @@ type IWorkoutDayRepository interface {
 	SaveWorkoutDay(workDay *models.WorkoutDay) error
 	GetWorkoutDays(userId string) ([]models.WorkoutDay, error)
 	GetWorkoutDaysByParams(queryOptions models.QueryOptions) ([]models.WorkoutDay, error)
+	GetWorkoutDaysSpecifyColumns(queryOptions models.QueryOptions) ([]models.WorkoutDay, error)
 }
 
 type IWorkoutRepository interface {
@@ -46,4 +47,5 @@ type IGroupRepository interface {
 
 type ILocationRepository interface {
 	GetLocations() ([]models.Location, error)
+	GetLocationsQueryParams(queryOptions models.QueryOptions) ([]models.Location, error)
 }

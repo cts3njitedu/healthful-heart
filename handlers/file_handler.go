@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"github.com/cts3njitedu/healthful-heart/services"
 	"github.com/cts3njitedu/healthful-heart/models"
-	"github.com/gorilla/context"
 	"strconv"
 )
 
@@ -23,12 +22,7 @@ func NewFileHandler(fileService services.IFileService) *FileHandler {
 func (fHandler *FileHandler) UploadFile(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("File Upload Endpoint Hit");
 
-	credentials:=context.Get(r,"credentials")
-	var creds models.Credentials
-
-	if c, ok := credentials.(models.Credentials); ok {
-		creds = c
-	}
+	creds, _ := r.Context().Value("credentials").(models.Credentials);
 	r.ParseMultipartForm(10 << 20)
 
 	file, handler, err := r.FormFile("myFile");

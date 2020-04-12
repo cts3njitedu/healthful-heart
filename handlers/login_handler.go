@@ -8,7 +8,7 @@ import (
 	"github.com/cts3njitedu/healthful-heart/services"
 	"github.com/cts3njitedu/healthful-heart/validators"
 	"github.com/cts3njitedu/healthful-heart/security"
-	"github.com/gorilla/context"
+	"golang.org/x/net/context"
 	"fmt"
 )
 
@@ -79,7 +79,9 @@ func (handler *LoginHandler) PostLoginPage(next http.Handler) http.Handler {
 			
 			return
 		}
-		context.Set(r,"credentials", credentials)
+		ctx := r.Context()
+		ctx = context.WithValue(ctx, "credentials", credentials)
+		r = r.WithContext(ctx)
 		next.ServeHTTP(w, r)
 
 	})

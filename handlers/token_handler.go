@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"net/http"
-	"github.com/gorilla/context"
+	"golang.org/x/net/context"
 	"github.com/cts3njitedu/healthful-heart/models"
 	"github.com/cts3njitedu/healthful-heart/security"
 	"github.com/cts3njitedu/healthful-heart/utils"
@@ -30,12 +30,12 @@ func NewTokenHandler(environmentUtil utils.IEnvironmentUtility, jwtToken securit
 }
 
 func (handler *TokenHandler) GetToken(w http.ResponseWriter, r *http.Request) {
-	credentials:=context.Get(r,"credentials")
-	var creds models.Credentials
+	creds, _ := r.Context().Value("credentials").(models.Credentials);
+	// var creds models.Credentials
 
-	if c, ok := credentials.(models.Credentials); ok {
-		creds = c
-	}
+	// if c, ok := credentials.(models.Credentials); ok {
+	// 	creds = c
+	// }
 	fmt.Println("Insided token handler");
 	accessCookie, err := handler.jwtToken.CreateAccessToken(creds)
 	
@@ -102,14 +102,21 @@ func (handler *TokenHandler) ValidateToken(next http.Handler) http.Handler {
 						Value: accessCookie.Value,
 						Expires: accessCookie.Expires,
 					})
-
+					fmt.Println("Something is right here 1: ")
 					w.Header().Set("Token", accessCookie.Value)
-					context.Set(r,"credentials", credentials)
+					ctx := r.Context()
+					ctx = context.WithValue(ctx, "credentials", credentials)
+					r = r.WithContext(ctx)
+					// context.Set(r,"credentials", credentials)
 					next.ServeHTTP(w, r)
 				
 				} else {
+					fmt.Println("Something is right here 2: ")
 					w.Header().Set("Token", bearerToken[1])
-					context.Set(r,"credentials", credentials)
+					// context.Set(r,"credentials", credentials)
+					ctx := r.Context()
+					ctx = context.WithValue(ctx, "credentials", credentials)
+					r = r.WithContext(ctx)
 					next.ServeHTTP(w, r)
 				}	
 			} else {

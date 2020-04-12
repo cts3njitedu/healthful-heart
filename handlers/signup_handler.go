@@ -7,7 +7,7 @@ import (
 	"github.com/cts3njitedu/healthful-heart/services"
 	"github.com/cts3njitedu/healthful-heart/models"
 	"github.com/cts3njitedu/healthful-heart/validators"
-	"github.com/gorilla/context"
+	"golang.org/x/net/context"
 )
 
 type SignupHandler struct {
@@ -55,7 +55,9 @@ func (handler *SignupHandler) PostSignUpPage(next http.Handler) http.Handler {
 			
 			return
 		}
-		context.Set(r,"credentials", credentials)
+		ctx := r.Context()
+		ctx = context.WithValue(ctx, "credentials", credentials)
+		r = r.WithContext(ctx)
 		next.ServeHTTP(w, r)
 	})
 }
