@@ -25,7 +25,16 @@ func NewWorkoutService(locationService ILocationService, workoutDayRepository my
 }
 
 func (serv * WorkoutService) GetWorkoutDays(queryParams models.QueryParams, cred models.Credentials) ([]models.WorkoutDay, error) {
-	workoutDays, _ := serv.workoutDayRepository.GetWorkoutDays(cred.UserId)
+	options := models.QueryOptions{};
+	whereClause := map[string] interface{} {
+		"user_id" : cred.UserId,
+	}
+	order := map[string]string {
+		"workout_date" : "asc",
+	}
+	options.Where = whereClause;
+	options.Order = order;
+	workoutDays, _ := serv.workoutDayRepository.GetWorkoutDaysByParams(options)
 	fmt.Println("Retrieved workout days for user: ", cred.UserId)
 	respWorkoutDays := make([]models.WorkoutDay,0 , len(workoutDays))
 	for _, workoutDay := range workoutDays {
@@ -110,18 +119,22 @@ func (serv * WorkoutService) GetWorkoutDaysPage(queryParams models.QueryParams, 
 
 func (serv * WorkoutService) GetWorkoutDaysLocationsView(heartRequest models.HeartRequest, cred models.Credentials) (models.HeartResponse, error) {
 	dbPage :=serv.pageRepository.GetPage("WORKOUT_DAY_LOCATIONS_PAGE");
-	date, _ := time.Parse("20060102", heartRequest.Date)
-	dateFormat := date.Format("2006-01-02 15:04:05")
+	// date, _ := time.Parse("20060102", heartRequest.Date)
+	// dateFormat := date.Format("2006-01-02 15:04:05")
 	locationOptions := models.QueryOptions{};
 	locationWhereClause := heartRequest.HeartFilter;
 	locationOptions.Where = locationWhereClause;
 	filterSection := Util.FindSection("LOCATION_SECTION", dbPage)
 	locationOptions.Order = Util.QueryBuildSort(heartRequest.HeartSort, filterSection)
 	locationOptions.Select = [] string {};
-	workoutQuery := fmt.Sprintf("Select LOCATION_ID FROM WORKOUTDAY WHERE WORKOUT_DATE='%v'", dateFormat);
-	locationOptions.NotIn = map[string]string {
-		"location_id" : workoutQuery,
-	}
+	// workoutQuery := fmt.Sprintf("Select LOCATION_ID FROM WORKOUTDAY WHERE WORKOUT_DATE='%v'", dateFormat);
+	// locationOptions.NotIn = map[string]string {
+	// 	"location_id" : workoutQuery,
+	// }
+
+	locationOptions.Limit = heartRequest.HeartPagination.Limit
+	locationOptions.Offset = heartRequest.HeartPagination.Offset
+	
 	locations, _ := serv.locationRepository.GetLocationsQueryParams(locationOptions);
 
 	fmt.Printf("Locations: %+v\n", locations)

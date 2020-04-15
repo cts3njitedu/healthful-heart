@@ -10,6 +10,7 @@ type HeartRequest struct {
 	ActionType string
 	HeartSort map[string]HeartSort
 	HeartFilter map[string]interface{}
+	HeartPagination HeartPagination
 	Date string
 
 }
@@ -21,6 +22,11 @@ type HeartSort struct {
 type HeartFilter struct {
 	Column string
 	Value string
+}
+
+type HeartPagination struct {
+	Limit int64
+	Offset int64
 }
 
 const (

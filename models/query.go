@@ -7,4 +7,6 @@ type QueryOptions struct {
 	In map[string]string
 	Select []string
 	NotIn map[string]string
+	Limit int64
+	Offset int64
 }

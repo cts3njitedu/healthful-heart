@@ -7,6 +7,7 @@ import (
 	"time"
 	"fmt"
 	"strings"
+	Util "github.com/cts3njitedu/healthful-heart/utils"
 )
 
 const SQL_QUERY_WORKOUT_DAY string = "user_id = ? AND location_id = ? and workout_date = ?"
@@ -47,11 +48,38 @@ func (repo *WorkoutDayRepository) GetWorkoutDaysByParams(queryOptions models.Que
 	if err != nil {
 		panic(err.Error())
 	}
-	var whereClause map[string]interface{};
-	if queryOptions.Where != nil {
-		whereClause = queryOptions.Where;
+	columns := map[string]models.QueryOptions {
+		"workout_day_id" : models.QueryOptions{},
+		"user_id" : models.QueryOptions{},
+		"location_id" : models.QueryOptions{},
+		"workout_date" : models.QueryOptions{},
+		"cre_ts" : models.QueryOptions{},
+		"mod_ts" : models.QueryOptions{},
+		"del_ts" : models.QueryOptions{},
+		"version_nb" : models.QueryOptions{},
+		"workout_file_id" : models.QueryOptions{},
+
 	}
-	db.Table("WorkoutDay").Where(whereClause).Order("WORKOUT_DATE").Find(&workoutDays)
+
+	sortMap := map[string]models.QueryOptions {
+		"asc" : models.QueryOptions{},
+		"desc" : models.QueryOptions{},
+	}
+	totalQuery, values := Util.SqlQueryBuilder(queryOptions, columns, sortMap, "WorkoutDay");
+
+	rows, err := db.Raw(totalQuery, values...).Rows()
+	
+	if err != nil {
+		fmt.Printf("There was an error: %+v\n", err)
+	} else {
+		for rows.Next() {
+			workoutDay := models.WorkoutDay{};
+			if err := db.ScanRows(rows, &workoutDay); err != nil {
+				fmt.Printf("Error: %+v\n", err)
+			}
+			workoutDays = append(workoutDays, workoutDay)
+		}
+	}
 	return workoutDays, nil;
 
 }
