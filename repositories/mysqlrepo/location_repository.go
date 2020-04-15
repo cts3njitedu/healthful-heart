@@ -61,7 +61,7 @@ func (repo * LocationRepository) GetLocationsQueryParams(queryOptions models.Que
 	}
 	length := 0;
 	selectQuery := []string{"*"};
-	if queryOptions.Select != nil {
+	if queryOptions.Select != nil && len(queryOptions.Select) > 0 {
 		selectQuery = make([]string, 0 , len(queryOptions.Select));
 		for _, v := range queryOptions.Select {
 			if _, ok := columns[strings.ToLower(v)]; ok {
@@ -74,7 +74,7 @@ func (repo * LocationRepository) GetLocationsQueryParams(queryOptions models.Que
 	whereQuery := []string{"1=?"};
 	var whereValues []interface{};
 	whereValues = append(whereValues, 1);
-	if queryOptions.Where != nil {
+	if queryOptions.Where != nil && len(queryOptions.Where) > 0 {
 		whereQuery = make([]string, 0, len(queryOptions.Where))
 		whereValues = make([]interface{}, 0, len(queryOptions.Where))
 		for k, v := range queryOptions.Where {
@@ -85,12 +85,12 @@ func (repo * LocationRepository) GetLocationsQueryParams(queryOptions models.Que
 				whereValues = append(whereValues, v)
 				whereQuery = append(whereQuery, fmt.Sprintf("%s = ?", k))
 			}
-			
 		}
+		length = length + len(whereValues)
 	}
 	fmt.Printf("Where Query: %+v, Where Values: %+v\n", whereQuery, whereValues)
 	orderQuery := []string {"1"}
-	if queryOptions.Order != nil {
+	if queryOptions.Order != nil && len(queryOptions.Order) > 0 {
 		orderQuery = make([]string, 0, len(queryOptions.Order))
 		for k, v := range queryOptions.Order {
 			if _, ok := columns[strings.ToLower(k)]; ok {
@@ -101,14 +101,30 @@ func (repo * LocationRepository) GetLocationsQueryParams(queryOptions models.Que
 		}
 	}
 	fmt.Printf("Order Query: %+v\n", orderQuery);
-
-	length = length + len(whereValues)
-	values := make([]interface{}, 0, length)
+	values := make([]interface{}, 0, length);
 	values = append(values, whereValues...)
 
-	totalQuery := "SELECT " + strings.Join(selectQuery, " , ") + " FROM Location WHERE " + strings.Join(whereQuery, " AND ") +
-		" ORDER BY " + fmt.Sprintf("%v", strings.Join(orderQuery, " , "));
-	// totalQuery := "Select * from location"
+	inQuery := []string{""}
+	if queryOptions.In != nil && len(queryOptions.In) > 0 {
+		for k, v := range queryOptions.In {
+			inQuery = append(inQuery, fmt.Sprintf(" AND %s in (%s)", k, v))
+		}
+	}
+
+	fmt.Printf("In Query: %+v\n", inQuery)
+
+	notInQuery := []string{""}
+	if queryOptions.NotIn != nil && len(queryOptions.NotIn) > 0 {
+		for k, v := range queryOptions.NotIn {
+			notInQuery = append(notInQuery, fmt.Sprintf(" AND %s NOT IN (%s)", k, v))
+		}
+	}
+	fmt.Printf("Not In Query: %+v\n", notInQuery)
+
+
+	totalQuery := "SELECT " + strings.Join(selectQuery, " , ") + " FROM Location WHERE " + strings.Join(whereQuery, " AND ") + 
+		strings.Join(inQuery, " ") + strings.Join(notInQuery, " ") + " ORDER BY " + fmt.Sprintf("%v", strings.Join(orderQuery, " , "));
+
 	fmt.Println("Query:", totalQuery)
 	fmt.Printf("Values: %+v\n",values)
 	rows, err := db.Raw(totalQuery, values...).Rows()

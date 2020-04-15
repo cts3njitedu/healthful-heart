@@ -110,12 +110,18 @@ func (serv * WorkoutService) GetWorkoutDaysPage(queryParams models.QueryParams, 
 
 func (serv * WorkoutService) GetWorkoutDaysLocationsView(heartRequest models.HeartRequest, cred models.Credentials) (models.HeartResponse, error) {
 	dbPage :=serv.pageRepository.GetPage("WORKOUT_DAY_LOCATIONS_PAGE");
+	date, _ := time.Parse("20060102", heartRequest.Date)
+	dateFormat := date.Format("2006-01-02 15:04:05")
 	locationOptions := models.QueryOptions{};
 	locationWhereClause := heartRequest.HeartFilter;
 	locationOptions.Where = locationWhereClause;
 	filterSection := Util.FindSection("LOCATION_SECTION", dbPage)
 	locationOptions.Order = Util.QueryBuildSort(heartRequest.HeartSort, filterSection)
-	locationOptions.Select = [] string {"state", "city"};
+	locationOptions.Select = [] string {};
+	workoutQuery := fmt.Sprintf("Select LOCATION_ID FROM WORKOUTDAY WHERE WORKOUT_DATE='%v'", dateFormat);
+	locationOptions.NotIn = map[string]string {
+		"location_id" : workoutQuery,
+	}
 	locations, _ := serv.locationRepository.GetLocationsQueryParams(locationOptions);
 
 	fmt.Printf("Locations: %+v\n", locations)
