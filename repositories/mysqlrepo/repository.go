@@ -48,4 +48,5 @@ type IGroupRepository interface {
 type ILocationRepository interface {
 	GetLocations() ([]models.Location, error)
 	GetLocationsQueryParams(queryOptions models.QueryOptions) ([]models.Location, error)
+	GetByLocationIds(ids []string) ([]models.Location, error)
 }
