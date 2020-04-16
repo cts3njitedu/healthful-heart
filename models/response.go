@@ -3,6 +3,9 @@ package models
 type HeartResponse struct {
 	SectionInfos []SectionInfo `json:"sectionInfos"`
 	NewSections []Section `json:"newSections"`
+	Message string `json:"message"`
+	IsSuccessful bool `json:"isSuccessful"`
+	Data interface{} `json:"data"`
 }
 
 type SectionInfo struct {
@@ -12,4 +15,5 @@ type SectionInfo struct {
 
 type SectionMetaData struct {
 	Id string `json:"id"`
+	Page int64  `json:"page"`
 }

@@ -17,7 +17,7 @@ type WorkoutDay struct {
 	Workouts []Workout `gorm:"-" json:"-"`
 	Location Location `gorm:"-" json:"location"`
 	Version_Nb int64 `gorm:"column:VERSION_NB" json:"versionNb"`
-	Workout_File_Id int64 `gorm:"column:WORKOUT_FILE_ID" json:"fileId"`
+	Workout_File_Id* int64 `gorm:"column:WORKOUT_FILE_ID" json:"fileId"`
 
 }
 

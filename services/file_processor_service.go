@@ -59,7 +59,7 @@ func (process *FileProcessorService) ProcessWorkoutFile(file models.WorkoutFile)
 	
 	for w := range workoutDayMap {
 		workoutDay := workoutDayMap[w]
-		workoutDay.Workout_File_Id = newFile.Workout_File_Id;
+		workoutDay.Workout_File_Id = &newFile.Workout_File_Id;
 		process.workoutDayRepository.SaveWorkoutDay(workoutDay)
 	}
 

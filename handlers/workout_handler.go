@@ -16,7 +16,7 @@ type WorkoutHandler struct {
 type IWorkoutHandler interface {
 	GetWorkoutDays(w http.ResponseWriter, r *http.Request)
 	GetWorkoutDaysPage(w http.ResponseWriter, r *http.Request)
-	GetWorkoutDaysLocationPage(w http.ResponseWriter, r *http.Request)
+	WorkoutDaysActions(w http.ResponseWriter, r *http.Request)
 }
 
 func NewWorkoutHandler(workoutService services.IWorkoutService) *WorkoutHandler {
@@ -53,12 +53,8 @@ func (handler *WorkoutHandler) GetWorkoutDaysPage(w http.ResponseWriter, r *http
 
 }
 
-func (handler *WorkoutHandler) GetWorkoutDaysLocationPage(w http.ResponseWriter, r *http.Request) {
-	// credentials:=context.Get(r,"credentials")
-	// var creds models.Credentials
-	// if c, ok := credentials.(models.Credentials); ok {
-	// 	creds = c
-	// }
+func (handler *WorkoutHandler) WorkoutDaysActions(w http.ResponseWriter, r *http.Request) {
+	
 	creds, _ := r.Context().Value("credentials").(models.Credentials);
 	fmt.Printf("Handler credential: %+v\n", creds)
 	
@@ -71,11 +67,17 @@ func (handler *WorkoutHandler) GetWorkoutDaysLocationPage(w http.ResponseWriter,
 		return
 	}
 	heartRequest.Date = vars["date"]
-	fmt.Printf("Heart Request: %+v\n", heartRequest)
-	if models.VIEW_LOCATIONS == heartRequest.ActionType {
+	fmt.Printf("Heart Request: %+v\n", heartRequest.ActionType)
+	
+	if heartRequest.ActionType == "VIEW_WORKOUTDATE_LOCATIONS" || heartRequest.ActionType == "VIEW_NON_WORKOUTDATE_LOCATIONS" {
 		heartResponse, _ := handler.workoutService.GetWorkoutDaysLocationsView(heartRequest, creds)
 		json.NewEncoder(w).Encode(heartResponse)
+	} else if heartRequest.ActionType == "ADD_WORKOUTDATE_LOCATION" {
+		heartResponse, _ := handler.workoutService.AddWorkoutDateLocation(heartRequest, creds)
+		json.NewEncoder(w).Encode(heartResponse)
 	}
+	
+
 	
 
 }

@@ -94,6 +94,28 @@ func (repo * WorkoutDayRepository) GetWorkoutDays(userId string) ([]models.Worko
 	return workoutDays, nil;
 }
 
+func (repo * WorkoutDayRepository) SaveWorkoutDayLocation(workDay *models.WorkoutDay) (*models.WorkoutDay, error) {
+	db, err := repo.connection.GetGormConnection();
+	defer db.Close()
+	if err != nil {
+		panic(err.Error())
+	}
+	
+
+	t := time.Now()
+	creTs := t.Format("2006-01-02 15:04:05")
+	workDay.Cre_Ts = &creTs;
+	workDay.Version_Nb = 1;
+	err = db.Table("WorkoutDay").Where(SQL_QUERY_WORKOUT_DAY, workDay.User_Id, 
+		workDay.Location_Id, workDay.Workout_Date).FirstOrCreate(&workDay).Error;
+	if err != nil {
+		fmt.Printf("WorkoutDay Error: %+v\n",err)
+		return &models.WorkoutDay{}, err;
+	}
+	fmt.Printf("Created workout day id: %d\n", workDay.Workout_Day_Id)
+	return workDay, nil
+}
+
 func (repo * WorkoutDayRepository) SaveWorkoutDay(workDay *models.WorkoutDay) error {
 	db, err := repo.connection.GetGormConnection();
 	defer db.Close()

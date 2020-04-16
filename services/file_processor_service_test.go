@@ -155,6 +155,9 @@ func (repo WorkoutRepositoryMock) GetWorkoutDaysSpecifyColumns(queryOptions mode
 	return nil, nil
 }
 
+func(repo WorkoutRepositoryMock) SaveWorkoutDayLocation(workDay *models.WorkoutDay) (*models.WorkoutDay, error) {
+	return nil, nil
+}
 
 func TestConvertFileToWorkDayMap(t *testing.T) {
 	t.Run("Testing Convert File to WorkDay Map", func(t *testing.T) {
