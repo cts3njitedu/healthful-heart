@@ -31,6 +31,7 @@ type Field struct {
 	IsDisabled bool `bson:"isDisabled" json:"isDisabled"`
 	Type string `bson:"type" json:"type"`
 	IsHidden bool `bson:"isHidden" json:"isHidden"`
+	IsEditable bool `bson:"isEditable" json:"isEditable"`
 	Items []Item `bson:"items" json:"items"`
 	IsDirty bool `bson:"isDirty" json:"isDirty"`
 	Errors []string `bson:"errors" json:"errors"`

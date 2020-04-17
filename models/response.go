@@ -16,4 +16,5 @@ type SectionInfo struct {
 type SectionMetaData struct {
 	Id string `json:"id"`
 	Page int64  `json:"page"`
+	TableHeaders []string `json:"tableHeaders"`
 }

@@ -98,7 +98,7 @@ func (serv * WorkoutService) GetWorkoutDaysLocationsView(heartRequest models.Hea
 	}
 	locations, _ = serv.locationRepository.GetLocationsQueryParams(locationOptions)
 	
-	locationSectionInfos := fillLocationSection(locationSection, locations);
+	locationSectionInfos := fillLocationSection(locationSection, locations, heartRequest);
 	totalLength = len(locationSectionInfos) + 5;
 	
 
@@ -106,6 +106,7 @@ func (serv * WorkoutService) GetWorkoutDaysLocationsView(heartRequest models.Hea
 	newActivitySectionInfos := models.SectionInfo{};
 	newActivitySectionMetaData := models.SectionMetaData{}
 	newActivitySection := Util.CloneSection(activitySection)
+	newActivitySection = Merge.MergeWorkoutDayActivityToSection(newActivitySection, heartRequest.ActionType)
 	newActivitySectionInfos.SectionMetaData = newActivitySectionMetaData
 	newActivitySectionInfos.Section = newActivitySection
 
@@ -166,19 +167,20 @@ func (serv * WorkoutService) AddWorkoutDateLocation(heartRequest models.HeartReq
 }
 
 func fillFilterSection(filterSection models.Section, locationSection models.Section, heartRequest models.HeartRequest) (models.SectionInfo) {
+	tableHeaders := []string {"Name", "Country", "State", "City", "ZipCode", "Location"}
 	filterSectionInfo := models.SectionInfo{}
 	newFilterSection := Util.CloneSection(filterSection);
 	newFilterSection.Fields = locationSection.Fields;
 	filterSectionMetaData := models.SectionMetaData{}
 	filterSectionMetaData.Id = heartRequest.Date;
 	filterSectionMetaData.Page = heartRequest.HeartPagination.Page
+	filterSectionMetaData.TableHeaders = tableHeaders
 	filterSectionInfo.SectionMetaData = filterSectionMetaData;
 	filterSectionInfo.Section = newFilterSection;
 	return filterSectionInfo;
 }
 
-func fillLocationSection(locationSection models.Section, locations []models.Location) ([]models.SectionInfo) {
-	
+func fillLocationSection(locationSection models.Section, locations []models.Location, heartRequest models.HeartRequest) ([]models.SectionInfo) {
 	fmt.Printf("Locations: %+v\n", locations)
 	newSectionInfos := make([]models.SectionInfo, 0, len(locations))
 	for _, loc := range locations {
@@ -188,6 +190,7 @@ func fillLocationSection(locationSection models.Section, locations []models.Loca
 		newSection.IsHidden = false;
 		locationMetaData := models.SectionMetaData{};
 		locationMetaData.Id = strconv.FormatInt(loc.Location_Id,10)
+		locationMetaData.Page = heartRequest.HeartPagination.Page
 		newSectionInfo.SectionMetaData = locationMetaData
 		newSectionInfo.Section = newSection
 		newSectionInfos = append(newSectionInfos, newSectionInfo)

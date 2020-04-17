@@ -21,6 +21,7 @@ func CloneSection(section models.Section) (models.Section) {
 	newSection.Id = section.Id;
 	newSection.ParentId = section.ParentId;
 	newSection.SectionId = section.SectionId;
+	newSection.IsHidden = section.IsHidden;
 	newSection.Errors = append(section.Errors[:0:0], section.Errors...)
 	newFields := make([]models.Field, 0, len(section.Fields))
 	for _, field := range section.Fields {
@@ -49,6 +50,7 @@ func CloneField(field models.Field) (models.Field) {
 	newField.MaxLength = field.MaxLength;
 	newField.IsMandatory = field.IsMandatory;
 	newField.RegexValue = field.RegexValue;
+	newField.IsEditable = field.IsEditable
 	newItems := make([]models.Item, 0, len(field.Items));
 	for _, item := range field.Items {
 		newItems = append(newItems, CloneItem(item))
