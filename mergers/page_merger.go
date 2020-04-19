@@ -59,11 +59,28 @@ func MergeLocationToSection(section models.Section, location models.Location) (m
 	return section
 }
 
-func MergeWorkDayToSection(section models.Section, workoutDay models.WorkoutDay) (models.Section) {
+func MergeWorkDayToSection(section models.Section, workoutDay models.WorkoutDay, actionType string) (models.Section) {
 	for f := range section.Fields {
 		var field  = &section.Fields[f]
-		if (field.FieldId == "WORKOUT_DATE") {
+		if field.FieldId == "WORKOUT_DATE" {
 			field.Value = workoutDay.Workout_Date
+			switch actionType {
+			case models.VIEW_NON_WORKOUTDATE_LOCATIONS:
+				field.IsDisabled = true;
+				field.IsHidden = true;
+			default:
+				field.IsDisabled = false;
+				field.IsHidden = false;
+			}
+		} else if field.FieldId == "CANCEL" || field.FieldId == "CHANGE_DATE" {
+			switch actionType {
+			case models.VIEW_WORKOUTDATE_LOCATIONS:
+				field.IsDisabled = true;
+				field.IsHidden = false;
+			default:
+				field.IsDisabled = true;
+				field.IsHidden = true;
+			}
 		}
 	} 
 	return section;
@@ -117,8 +134,85 @@ func MergeWorkoutDayActivityToSection(section models.Section, actionType string)
 				field.IsEditable = false;
 			}
 		} else if field.FieldId == "CANCEL" {
-			field.IsDisabled = true;
+			field.IsDisabled = false;
 			field.IsHidden = false
+		} else if field.FieldId == "VIEW_WORKOUTDAY_LOCATIONS" {
+			switch actionType {
+			case models.VIEW_NON_WORKOUTDATE_LOCATIONS:
+				field.IsDisabled = false
+				field.IsHidden = false
+				field.IsEditable = false;
+			default:
+				field.IsDisabled = true
+				field.IsHidden = true;
+				field.IsEditable = false;
+			}
+		}
+	}
+	return section 
+}
+
+func MergeWorkoutDayActivityToSectionLocationSelected(section models.Section, actionType string) (models.Section) {
+	for f := range section.Fields {
+		var field  = &section.Fields[f]
+		if (field.FieldId == "ADD_WORKOUTDATE_LOCATION") {
+			switch actionType {
+			case models.VIEW_NON_WORKOUTDATE_LOCATIONS:
+				field.IsDisabled = false
+				field.IsHidden = false
+				field.IsEditable = false;
+			default:
+				field.IsDisabled = true
+				field.IsHidden = true;
+				field.IsEditable = false;
+			}
+		} else if field.FieldId == "VIEW_WORKOUTS" {
+			switch actionType {
+			case models.VIEW_WORKOUTDATE_LOCATIONS:
+				field.IsDisabled = false;
+				field.IsHidden = false;
+				field.IsEditable = false;
+			default:
+				field.IsDisabled = true;
+				field.IsHidden = true;
+				field.IsEditable = false;
+			}
+		} else if field.FieldId == "DELETE_LOCATION" {
+			switch actionType {
+			case models.VIEW_WORKOUTDATE_LOCATIONS:
+				field.IsDisabled = true;
+				field.IsHidden = false;
+				field.IsEditable = false;
+			default:
+				field.IsDisabled = true;
+				field.IsHidden = true;
+				field.IsEditable = false;
+			}
+		} else if field.FieldId == "VIEW_OTHER_LOCATIONS" {
+			switch actionType {
+			case models.VIEW_WORKOUTDATE_LOCATIONS:
+				field.IsDisabled = false;
+				field.IsHidden = false;
+				field.IsEditable = false;
+			default:
+				field.IsDisabled = true;
+				field.IsHidden = true;
+				field.IsEditable = false;
+			}
+		} else if field.FieldId == "CANCEL" {
+			field.IsDisabled = false;
+			field.IsHidden = false
+		} else if field.FieldId == "VIEW_WORKOUTDAY_LOCATIONS" {
+			switch actionType {
+			case models.VIEW_NON_WORKOUTDATE_LOCATIONS:
+				field.IsDisabled = false
+				field.IsHidden = false
+				field.IsEditable = false;
+			default:
+				field.IsDisabled = true
+				field.IsHidden = true;
+				field.IsEditable = false;
+			}
 		}
 	}
 	return section 

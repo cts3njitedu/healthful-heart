@@ -19,6 +19,7 @@ type WorkoutService struct {
 	locationRepository mysqlrepo.ILocationRepository 
 }
 
+
 func NewWorkoutService(locationService ILocationService, workoutDayRepository mysqlrepo.IWorkoutDayRepository, 
 	workoutRepository mysqlrepo.IWorkoutRepository, pageRepository mongorepo.IPageRepository, locationRepository mysqlrepo.ILocationRepository) *WorkoutService {
 	return &WorkoutService{locationService, workoutDayRepository, workoutRepository, pageRepository, locationRepository}
@@ -76,11 +77,11 @@ func (serv * WorkoutService) GetWorkoutDaysLocationsView(heartRequest models.Hea
 	newSections := make([]models.Section, 0, 5);
 	newSections = append(newSections, locationSection)
 	newSections = append(newSections, headerSection)
-	newSections = append(newSections, activitySection)
+	
 	totalLength := 0;
 
-	filterSectionInfo := fillFilterSection(filterSection, locationSection, heartRequest);
-	newSections = append(newSections, Util.CloneSection(filterSectionInfo.Section))
+	filterSectionInfo, cleanFilterSection := fillFilterSection(filterSection, locationSection, heartRequest);
+	newSections = append(newSections, Util.CloneSection(cleanFilterSection))
 	locations := [] models.Location{}
 	locationOptions := models.QueryOptions{};
 	locationOptions.Where = heartRequest.HeartFilter;
@@ -110,12 +111,20 @@ func (serv * WorkoutService) GetWorkoutDaysLocationsView(heartRequest models.Hea
 	newActivitySectionInfos.SectionMetaData = newActivitySectionMetaData
 	newActivitySectionInfos.Section = newActivitySection
 
+	locationSelectedSection := Util.CloneSection(activitySection);
+	locationSelectedSection = Merge.MergeWorkoutDayActivityToSectionLocationSelected(locationSelectedSection, heartRequest.ActionType)
+	locationSelectedSection.SectionId = models.LOCATION_SELECTED
+	newActivitySectionStore := Util.CloneSection(newActivitySection);
+	newActivitySectionStore.SectionId = models.DEFAULT_ACTIVITY
+	newSections = append(newSections, locationSelectedSection)
+	newSections = append(newSections, newActivitySectionStore)
+
 
 	newHeaderSection := Util.CloneSection(headerSection);
 	workoutDayHeader := models.WorkoutDay{}
 	dateFormat = date.Format("2006-01-02")
 	workoutDayHeader.Workout_Date = dateFormat
-	newHeaderSection = Merge.MergeWorkDayToSection(newHeaderSection, workoutDayHeader)
+	newHeaderSection = Merge.MergeWorkDayToSection(newHeaderSection, workoutDayHeader, heartRequest.ActionType)
 	newHeaderMetaData := models.SectionMetaData{};
 	newHeaderMetaData.Id = heartRequest.Date
 	newHeaderSectionInfo := models.SectionInfo{}
@@ -166,18 +175,27 @@ func (serv * WorkoutService) AddWorkoutDateLocation(heartRequest models.HeartReq
 	
 }
 
-func fillFilterSection(filterSection models.Section, locationSection models.Section, heartRequest models.HeartRequest) (models.SectionInfo) {
+func fillFilterSection(filterSection models.Section, locationSection models.Section, heartRequest models.HeartRequest) (models.SectionInfo, models.Section) {
 	tableHeaders := []string {"Name", "Country", "State", "City", "ZipCode", "Location"}
 	filterSectionInfo := models.SectionInfo{}
+	heartFilter:= heartRequest.HeartFilter;
 	newFilterSection := Util.CloneSection(filterSection);
-	newFilterSection.Fields = locationSection.Fields;
+	newLocationSection := Util.CloneSection(locationSection);
+	newFilterSection.Fields = newLocationSection.Fields;
+	cleanFilterSection := Util.CloneSection(newFilterSection)
+	for f := range newFilterSection.Fields {
+		field := &newFilterSection.Fields[f];
+		if v, ok := heartFilter[field.Name]; ok {
+			field.Value = v.(string)
+		}
+	}
 	filterSectionMetaData := models.SectionMetaData{}
 	filterSectionMetaData.Id = heartRequest.Date;
 	filterSectionMetaData.Page = heartRequest.HeartPagination.Page
 	filterSectionMetaData.TableHeaders = tableHeaders
 	filterSectionInfo.SectionMetaData = filterSectionMetaData;
 	filterSectionInfo.Section = newFilterSection;
-	return filterSectionInfo;
+	return filterSectionInfo, cleanFilterSection;
 }
 
 func fillLocationSection(locationSection models.Section, locations []models.Location, heartRequest models.HeartRequest) ([]models.SectionInfo) {
