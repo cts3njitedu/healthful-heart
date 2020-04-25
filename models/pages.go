@@ -41,6 +41,7 @@ type Field struct {
 	IsMandatory bool `bson:"isMandatory" json:"isMandatory"`
 	RegexValue string `bson:"regexValue" json:"regexValue"`
 	Title string `bson:"title" json:"title"`
+	SortOrder* string `bson:"sortOrder" json:"sortOrder"`
 }
 
 type Item struct {

@@ -9,6 +9,7 @@ import (
 	Util "github.com/cts3njitedu/healthful-heart/utils"
 	Merge "github.com/cts3njitedu/healthful-heart/mergers"
 	"strconv"
+	"strings"
 
 )
 type WorkoutService struct {
@@ -72,6 +73,7 @@ func (serv * WorkoutService) GetWorkoutDaysLocationsView(heartRequest models.Hea
 	locationSection := Util.FindSection("LOCATION_SECTION", dbPage)
 	filterSection := Util.FindSection("FILTER_SECTION", dbPage)
 	activitySection := Util.FindSection("ACTIVITY_SECTION", dbPage)
+	locationHeaderSection := Util.FindSection("LOCATION_HEADER_SECTION", dbPage)
 
 
 	newSections := make([]models.Section, 0, 5);
@@ -82,6 +84,9 @@ func (serv * WorkoutService) GetWorkoutDaysLocationsView(heartRequest models.Hea
 
 	filterSectionInfo, cleanFilterSection := fillFilterSection(filterSection, locationSection, heartRequest);
 	newSections = append(newSections, Util.CloneSection(cleanFilterSection))
+
+	locationHeaderSectionInfo, cleanLocationHeaderSection := fillLocationHeaderSection(locationHeaderSection, locationSection, heartRequest)
+	newSections = append(newSections, Util.CloneSection(cleanLocationHeaderSection))
 	locations := [] models.Location{}
 	locationOptions := models.QueryOptions{};
 	locationOptions.Where = heartRequest.HeartFilter;
@@ -136,7 +141,9 @@ func (serv * WorkoutService) GetWorkoutDaysLocationsView(heartRequest models.Hea
 	newSectionInfos = append(newSectionInfos, filterSectionInfo)
 	newSectionInfos = append(newSectionInfos, newActivitySectionInfos)
 	newSectionInfos = append(newSectionInfos, locationSectionInfos...)
+	newSectionInfos = append(newSectionInfos, locationHeaderSectionInfo)
 	heartResponse := models.HeartResponse{};
+	heartResponse.ActionType = heartRequest.ActionType
 	heartResponse.NewSections = newSections;
 	heartResponse.SectionInfos = newSectionInfos;
 	return heartResponse, nil;
@@ -173,6 +180,30 @@ func (serv * WorkoutService) AddWorkoutDateLocation(heartRequest models.HeartReq
 	return heartResponse, nil
 	
 	
+}
+
+func fillLocationHeaderSection (locationHeaderSection models.Section, locationSection models.Section, heartRequest models.HeartRequest) (models.SectionInfo, models.Section) {
+	locationSectionInfo := models.SectionInfo{}
+	newLocationSection := Util.CloneSection(locationSection)
+	newLocationHeaderSection := Util.CloneSection(locationHeaderSection)
+	newLocationHeaderSection.Fields = append(newLocationHeaderSection.Fields, newLocationSection.Fields...)
+	cleanLocationHeaderSection := Util.CloneSection(newLocationHeaderSection)
+	heartSorts := heartRequest.HeartSort;
+	for f := range newLocationHeaderSection.Fields {
+		field := &newLocationHeaderSection.Fields[f];
+		
+		if v, ok := heartSorts[field.Name]; ok {
+			value := strings.ToUpper(v.SortOrder);
+			field.SortOrder = &value
+
+		}
+	}
+	locationMetaData := models.SectionMetaData{}
+	locationMetaData.Id = heartRequest.Date;
+	locationMetaData.Page = heartRequest.HeartPagination.Page
+	locationSectionInfo.SectionMetaData = locationMetaData
+	locationSectionInfo.Section = newLocationHeaderSection
+	return locationSectionInfo, cleanLocationHeaderSection
 }
 
 func fillFilterSection(filterSection models.Section, locationSection models.Section, heartRequest models.HeartRequest) (models.SectionInfo, models.Section) {
