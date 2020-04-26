@@ -4,6 +4,7 @@ import (
 	"github.com/cts3njitedu/healthful-heart/connections"
 	"github.com/cts3njitedu/healthful-heart/models"
 	"fmt"
+	// "strings"
 	Util "github.com/cts3njitedu/healthful-heart/utils"
 	// "github.com/jinzhu/gorm"
 )
@@ -60,7 +61,6 @@ func (repo * LocationRepository) GetLocationsQueryParams(queryOptions models.Que
 		"desc" : models.QueryOptions{},
 	}
 	totalQuery, values := Util.SqlQueryBuilder(queryOptions, columns, sortMap, "Location");
-
 	rows, err := db.Raw(totalQuery, values...).Rows()
 	
 	if err != nil {

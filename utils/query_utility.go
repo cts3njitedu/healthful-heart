@@ -33,11 +33,12 @@ func SqlQueryBuilder(queryOptions models.QueryOptions, columns map[string]models
 	inQuery := InQuery(queryOptions)
 	notInQuery := NotInQuery(queryOptions)
 	limitAndOffsetQuery := LimitAndOffsetQuery(queryOptions)
+	fmt.Printf("Where Query Builder:%+v\n",whereQuery)
 	values := make([]interface{}, 0, length);
-	totalQuery := "SELECT " + strings.Join(selectQuery, " , ") + " FROM " + fmt.Sprintf("%v",tableName) + " WHERE " + strings.Join(whereQuery, " AND ") + 
+	totalQuery := "SELECT " + strings.Join(selectQuery, " , ") + " FROM " + fmt.Sprintf("%v",tableName) + " WHERE " + strings.Join(whereQuery, " AND ") +
 	strings.Join(inQuery, " ") + strings.Join(notInQuery, " ") + " ORDER BY " + fmt.Sprintf("%v", strings.Join(orderQuery, " , ")) +
 	limitAndOffsetQuery;
-	values = append(values, whereValues)
+	values = append(values, whereValues...)
 	fmt.Println("Query:", totalQuery)
 	fmt.Printf("Values: %+v\n",values)
 	return totalQuery, values
@@ -67,18 +68,23 @@ func WhereQuery(queryOptions models.QueryOptions) ([]string, []interface{}) {
 		whereQuery = make([]string, 0, len(queryOptions.Where))
 		whereValues = make([]interface{}, 0, len(queryOptions.Where))
 		for k, v := range queryOptions.Where {
-			// if nv, ok := v.(string); ok {
-			// 	whereValues = append(whereValues, "%" + nv + "%")
-			// 	whereQuery = append(whereQuery, fmt.Sprintf("%s LIKE ?", k))
-			// } else {
-				whereValues = append(whereValues, v)
-				whereQuery = append(whereQuery, fmt.Sprintf("UPPER(%s) = UPPER(?)", k))
+			if nv, ok := v.(string); ok {
+				whereValues = append(whereValues, nv + "%")
+				whereQuery = append(whereQuery, fmt.Sprintf("%s LIKE ?", k))
+			} 
+			
+			
+			//else {
+				// whereValues = append(whereValues, v)
+				// whereQuery = append(whereQuery, fmt.Sprintf("UPPER(%s) = UPPER(?)", k))
 			// }
 		}
 	}
+	newWhereQuery := make([]string, len(whereQuery))
+	copy(newWhereQuery, whereQuery)
 	
 	fmt.Printf("Where Query: %+v, Where Values: %+v\n", whereQuery, whereValues)
-	return whereQuery, whereValues
+	return newWhereQuery, whereValues
 }
 
 func OrderQuery(queryOptions models.QueryOptions, columns map[string]models.QueryOptions, sortMap map[string]models.QueryOptions) ([]string) {

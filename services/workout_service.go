@@ -158,6 +158,14 @@ func (serv * WorkoutService) AddWorkoutDateLocation(heartRequest models.HeartReq
 	heartResponse := models.HeartResponse{}
 	var workoutDay *models.WorkoutDay = &models.WorkoutDay{};
 	workoutDay.Workout_Date = dateFormat;
+	workoutTime, _ := time.Parse("2006-01-02 15:04:05", workoutDay.Workout_Date)
+	workoutDay.Year = workoutTime.Year()
+	month := workoutTime.Month() 
+	workoutDay.Month = month.String()
+	workoutDay.MonthId = int(workoutTime.Month())
+	workoutDay.Day = workoutTime.Day()
+	lastDayTime := time.Date(workoutTime.Year(), workoutTime.Month() + 1,0, 0, 0, 0, 0, time.UTC)
+	workoutDay.NumberOfDays = lastDayTime.Day()
 	userId, err := strconv.ParseInt(cred.UserId, 10, 64)
 	workoutDay.User_Id = userId
 	id, err := strconv.ParseInt(location_id, 10, 64)
@@ -176,6 +184,7 @@ func (serv * WorkoutService) AddWorkoutDateLocation(heartRequest models.HeartReq
 		heartResponse.Message = "Action Successful"
 		heartResponse.IsSuccessful = true
 		heartResponse.Data = workoutDay
+		heartResponse.ActionType = models.VIEW_WORKOUTDATE_LOCATIONS
 	}
 	return heartResponse, nil
 	
