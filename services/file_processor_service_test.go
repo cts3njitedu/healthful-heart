@@ -139,6 +139,14 @@ func (serv WorkoutTypeServiceMock) GetCategoryNameFromCode(categoryCd string) (s
 func (serv WorkoutTypeServiceMock) GetCategories() (map[string]string, map[string]string) {
 	return nil, nil
 }
+
+func (serv WorkoutTypeServiceMock) GetCategoriesAndWorkouts() (map[string]map[string]models.WorkoutType) {
+	return nil
+}
+
+func (serv WorkoutTypeServiceMock) GetCategoriesAndWorkoutTypes() (map[string]map[string]string) {
+	return nil
+}
 type WorkoutRepositoryMock struct {}
 
 func (repo WorkoutRepositoryMock) SaveWorkoutDay(workDay *models.WorkoutDay) error {

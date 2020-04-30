@@ -68,6 +68,15 @@ func CloneItem(item models.Item) (models.Item) {
 	newItem := models.Item{};
 	newItem.Id = item.Id;
 	newItem.Item = item.Item;
+	if item.Values != nil && len(item.Values) != 0 {
+		valuesMap := make(map[string]models.Item);
+		for key, item := range item.Values {
+			valuesMap[key] = CloneItem(item)
+		}
+		newItem.Values = valuesMap
+	}
+	
+	
 	return newItem;
 }
 

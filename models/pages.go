@@ -21,6 +21,17 @@ type Section struct {
 }
 
 
+func (sect * Section) FindField(fieldId string, section Section) Field {
+	for f := range section.Fields {
+		field := section.Fields[f];
+		if field.FieldId == fieldId {
+			return field;
+		}
+
+	}
+
+	return Field{}
+}
 type Field struct {
 	Id string `bson:"id" json:"id"`
 	ParentId string `bson:"parentId" json:"parentId"`
@@ -47,6 +58,7 @@ type Field struct {
 type Item struct {
 	Id string `bson:"id" json:"id"`
 	Item string `bson:"item" json:"item"`
+	Values map[string]Item `json:"values"`
 }
 
 type Validation struct {

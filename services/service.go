@@ -47,6 +47,8 @@ type IWorkoutTypeService interface {
 	GetCategoryNameFromCode(categoryCd string) (string, error)
 	GetCategoryCodeFromName(categoryName string) (string, error)
 	GetCategories() (map[string]string, map[string]string)
+	GetCategoriesAndWorkouts() (map[string]map[string]models.WorkoutType)
+	GetCategoriesAndWorkoutTypes() (map[string]map[string]string)
 
 }
 

@@ -203,8 +203,9 @@ func (serv * WorkoutService) GetWorkoutPageHeader(heartRequest models.HeartReque
 	navigationSection := Util.FindSection("NAVIGATION_SECTION", dbPage)
 	activitySection := Util.FindSection("ACTIVITY_SECTION", dbPage)
 	workoutSection := Util.FindSection("WORKOUT_SECTION", dbPage)
+
 	newSections := make([]models.Section, 0, 5);
-	newSections = append(newSections, workoutSection)
+	
 	workoutDayOptions := models.QueryOptions{}
 	workoutDayOptions.Where = map[string]interface{} {
 		"WORKOUT_DATE" : dateFormat,
@@ -214,6 +215,7 @@ func (serv * WorkoutService) GetWorkoutPageHeader(heartRequest models.HeartReque
 	workoutDays, _ := serv.workoutDayRepository.GetWorkoutDaysByParams(workoutDayOptions)
 	fmt.Printf("Workout Days: %+v\n", workoutDays)
 	newSectionInfos := make([]models.SectionInfo, 0, 5);
+	workouts := make([]models.Workout, 0, 5)
 	if len(workoutDays) == 1 {
 		workoutDayHeader := workoutDays[0];
 		dateFormat = date.Format("2006-01-02")
@@ -225,17 +227,35 @@ func (serv * WorkoutService) GetWorkoutPageHeader(heartRequest models.HeartReque
 		newSections = append(newSections, Util.CloneSection(newHeaderSection))
 		newHeaderInfo := models.SectionInfo{};
 		newHeaderMetaData := models.SectionMetaData{};
-		newHeaderMetaData.Id = strconv.FormatInt(workoutDayHeader.Workout_Day_Id,10);
+		workoutId := strconv.FormatInt(workoutDayHeader.Workout_Day_Id,10)
+		newHeaderMetaData.Id = workoutId;
 		newHeaderInfo.SectionMetaData = newHeaderMetaData
 		newHeaderInfo.Section = newHeaderSection;
 		newSectionInfos = append(newSectionInfos, newHeaderInfo)
+		workoutOptions := models.QueryOptions{}
+		selectClause := []string{"Workout_Type_Cd", ""};
+		workoutOptions.Select = selectClause
+		workoutOptions.Where = map[string]interface{} {
+			"workout_day_id" : workoutId,
+		}
+		workoutOptions.IsEqual = true
+		workouts, _ = serv.workoutRepository.GetWorkoutByParams(workoutOptions)
+		fmt.Printf("Workouts: %+v\n", workouts)
 	}
 
-	categoryNameToCd, _ := serv.workoutTypeService.GetCategories();
-
+	categoryNameToCd, categoryCdToName := serv.workoutTypeService.GetCategories();
+	categoriesAndWorkouts := serv.workoutTypeService.GetCategoriesAndWorkoutTypes();
 	navSectionInfo := fillCategoryNavigationSection(navigationSection, heartRequest, categoryNameToCd)
 	newSections = append(newSections, Util.CloneSection(navSectionInfo.Section))
 	newSectionInfos = append(newSectionInfos, navSectionInfo)
+	
+	workoutMap := make(map[string]models.Workout)
+	for _, v := range workouts {
+		workoutMap[v.Workout_Type_Cd] = models.Workout{}
+	}
+
+	newWorkoutSection := fillNewWorkoutSection(workoutSection, heartRequest, categoryCdToName, categoriesAndWorkouts, workoutMap)
+	newSections = append(newSections, newWorkoutSection)
 
 	newActivitySection := Util.CloneSection(activitySection);
 	newActivitySection = Merge.MergeWorkoutActivityToSection(newActivitySection, heartRequest.ActionType);
@@ -339,6 +359,41 @@ func fillCategoryNavigationSection(navigationSection models.Section, heartReques
 	newNavSectionInfo.Section = newNavSection
 	return newNavSectionInfo
 
+}
+
+func fillNewWorkoutSection(workoutSection models.Section, heartRequest models.HeartRequest,categories map[string]string, 
+			catWorkouts map[string]map[string]string, workouts map[string]models.Workout) (models.Section) {
+
+	items := make([]models.Item, 0, len(categories));
+	
+	for catCode, workoutMap := range catWorkouts {
+		values := make(map[string]models.Item)
+		item := models.Item{};
+		item.Id = catCode;
+		item.Item = categories[catCode]
+		for workType, workout := range workoutMap {
+			if _, ok := workouts[workType]; !ok {
+				values[workType] = models.Item{
+					Id: workType,
+					Item: workout,
+				}
+			}
+		}
+		if (len(values) > 0) {
+			item.Values = values;
+			items = append(items, item)
+		}
+
+	}
+	newWorkoutSection := Util.CloneSection(workoutSection);
+	for f := range newWorkoutSection.Fields {
+		field := &newWorkoutSection.Fields[f]
+		if (field.FieldId == "CATEGORY_NAME") {
+			field.Items = items;
+		}
+	}
+
+	return newWorkoutSection
 }
 
 func getWorkouts(date time.Time, cred models.Credentials, workoutDayRepository mysqlrepo.IWorkoutDayRepository) ([]models.WorkoutDay) {

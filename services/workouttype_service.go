@@ -14,6 +14,7 @@ type WorkoutTypeService struct {
 }
 
 var catCodeMap =  make(map[string]map[string]models.WorkoutType)
+var catCodeTypeMap = make(map[string]map[string]string)
 
 var categoryCdToName = make(map[string]string)
 
@@ -38,6 +39,14 @@ func NewWorkoutTypeService(workoutTypeRepository mysqlrepo.IWorkoutTypeRepositor
 			workTypeNameMap := catCodeMap[workType.Category_Cd]
 			workTypeName := strings.ToUpper(workType.Name);
 			workTypeNameMap[workTypeName] = workType;
+		}
+		if catCodeTypeMap[workType.Category_Cd] == nil {
+			workTypeMap := make(map[string]string)
+			workTypeMap[workType.Workout_Type_Cd] = workType.Name
+			catCodeTypeMap[workType.Category_Cd] = workTypeMap
+		} else {
+			workTypeMap := catCodeTypeMap[workType.Category_Cd]
+			workTypeMap[workType.Workout_Type_Cd] = workType.Name
 		}
 	} 
 
@@ -95,6 +104,36 @@ func (serv *WorkoutTypeService) GetCategories() (map[string]string, map[string]s
 		newCdToName[k] = v
 	}
 	return newNameToCd, newCdToName
+}
+
+func (serv *WorkoutTypeService) GetCategoriesAndWorkouts() (map[string]map[string]models.WorkoutType) {
+	newCatWorkoutMap := make(map[string]map[string]models.WorkoutType)
+
+	for c, wm := range catCodeMap {
+		newWorkoutMap := make(map[string]models.WorkoutType)
+		for wc, wt := range wm {
+			newWorkoutMap[wc] = models.WorkoutType{
+				Name: wt.Name,
+				Category_Cd: wt.Category_Cd,
+				Workout_Type_Cd: wt.Workout_Type_Cd,
+			}
+		}
+		newCatWorkoutMap[c] = newWorkoutMap
+	}
+	return newCatWorkoutMap
+}
+
+func (serv *WorkoutTypeService) GetCategoriesAndWorkoutTypes() (map[string]map[string]string) {
+	newCatWorkoutMap := make(map[string]map[string]string)
+
+	for c, wm := range catCodeTypeMap {
+		newWorkoutMap := make(map[string]string)
+		for wc, wt := range wm {
+			newWorkoutMap[wc] = wt
+		}
+		newCatWorkoutMap[c] = newWorkoutMap
+	}
+	return newCatWorkoutMap
 }
 func getSubstring(s string, start int, end int) (string) {
 	runes := []rune(s)
