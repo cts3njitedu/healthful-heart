@@ -85,9 +85,9 @@ func init() {
 	enr:= []enrichers.IEnricher {singupEnricher}
 	enricherExecutor = enrichers.NewEnrichExecutor(enr)
 	locationService = services.NewLocationService(locationRepository)
-	workoutService = services.NewWorkoutService(locationService, workoutDayRepository, workRepository, pageRepository, locationRepository)
 	groupParserService = services.NewGroupParserService()
 	workoutTypeService = services.NewWorkoutTypeService(workoutTypeRepository,categoryRepository)
+	workoutService = services.NewWorkoutService(locationService, workoutDayRepository, workRepository, pageRepository, locationRepository, workoutTypeService)
 	fileProcessorService = services.NewFileProcessorService(workoutRepository, fileRepository, workoutTypeService, groupParserService,workoutDayRepository)
 	rabbitService = services.NewRabbitService(rabbitConnection, environmentUtiliy, fileProcessorService)
 	authenticationService = services.NewAuthenticationService(pageRepository, restructureService, enricherExecutor)

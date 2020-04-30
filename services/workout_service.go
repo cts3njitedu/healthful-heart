@@ -10,6 +10,7 @@ import (
 	Merge "github.com/cts3njitedu/healthful-heart/mergers"
 	"strconv"
 	"strings"
+	"sort"
 
 )
 type WorkoutService struct {
@@ -17,13 +18,14 @@ type WorkoutService struct {
 	workoutDayRepository mysqlrepo.IWorkoutDayRepository
 	workoutRepository mysqlrepo.IWorkoutRepository
 	pageRepository mongorepo.IPageRepository
-	locationRepository mysqlrepo.ILocationRepository 
+	locationRepository mysqlrepo.ILocationRepository
+	workoutTypeService IWorkoutTypeService
 }
 
 
 func NewWorkoutService(locationService ILocationService, workoutDayRepository mysqlrepo.IWorkoutDayRepository, 
-	workoutRepository mysqlrepo.IWorkoutRepository, pageRepository mongorepo.IPageRepository, locationRepository mysqlrepo.ILocationRepository) *WorkoutService {
-	return &WorkoutService{locationService, workoutDayRepository, workoutRepository, pageRepository, locationRepository}
+	workoutRepository mysqlrepo.IWorkoutRepository, pageRepository mongorepo.IPageRepository, locationRepository mysqlrepo.ILocationRepository, workoutTypeService IWorkoutTypeService) *WorkoutService {
+	return &WorkoutService{locationService, workoutDayRepository, workoutRepository, pageRepository, locationRepository, workoutTypeService}
 }
 
 func (serv * WorkoutService) GetWorkoutDays(queryParams models.QueryParams, cred models.Credentials) ([]models.WorkoutDay, error) {
@@ -191,7 +193,65 @@ func (serv * WorkoutService) AddWorkoutDateLocation(heartRequest models.HeartReq
 	
 }
 
-func fillLocationHeaderSection (locationHeaderSection models.Section, locationSection models.Section, heartRequest models.HeartRequest) (models.SectionInfo, models.Section) {
+func (serv * WorkoutService) GetWorkoutPageHeader(heartRequest models.HeartRequest, cred models.Credentials) (models.HeartResponse, error) {
+	dbPage :=serv.pageRepository.GetPage("WORKOUTS_PAGE");
+	date, _ := time.Parse("20060102", heartRequest.Date)
+	dateFormat := date.Format("2006-01-02 15:04:05")
+
+
+	headerSection := Util.FindSection("HEADER_SECTION", dbPage)
+	navigationSection := Util.FindSection("NAVIGATION_SECTION", dbPage)
+	activitySection := Util.FindSection("ACTIVITY_SECTION", dbPage)
+	workoutSection := Util.FindSection("WORKOUT_SECTION", dbPage)
+	newSections := make([]models.Section, 0, 5);
+	newSections = append(newSections, workoutSection)
+	workoutDayOptions := models.QueryOptions{}
+	workoutDayOptions.Where = map[string]interface{} {
+		"WORKOUT_DATE" : dateFormat,
+		"USER_ID" : cred.UserId,
+	}
+	workoutDayOptions.IsEqual = true;
+	workoutDays, _ := serv.workoutDayRepository.GetWorkoutDaysByParams(workoutDayOptions)
+	fmt.Printf("Workout Days: %+v\n", workoutDays)
+	newSectionInfos := make([]models.SectionInfo, 0, 5);
+	if len(workoutDays) == 1 {
+		workoutDayHeader := workoutDays[0];
+		dateFormat = date.Format("2006-01-02")
+		workoutDayHeader.Workout_Date = dateFormat
+		location, _ := serv.locationService.GetLocation(workoutDayHeader.Location_Id)
+		workoutDayHeader.Location = location
+		newHeaderSection := Util.CloneSection(headerSection);
+		newHeaderSection = Merge.MergeWorkDayToSection(newHeaderSection, workoutDayHeader, heartRequest.ActionType)
+		newSections = append(newSections, Util.CloneSection(newHeaderSection))
+		newHeaderInfo := models.SectionInfo{};
+		newHeaderMetaData := models.SectionMetaData{};
+		newHeaderMetaData.Id = strconv.FormatInt(workoutDayHeader.Workout_Day_Id,10);
+		newHeaderInfo.SectionMetaData = newHeaderMetaData
+		newHeaderInfo.Section = newHeaderSection;
+		newSectionInfos = append(newSectionInfos, newHeaderInfo)
+	}
+
+	categoryNameToCd, _ := serv.workoutTypeService.GetCategories();
+
+	navSectionInfo := fillCategoryNavigationSection(navigationSection, heartRequest, categoryNameToCd)
+	newSections = append(newSections, Util.CloneSection(navSectionInfo.Section))
+	newSectionInfos = append(newSectionInfos, navSectionInfo)
+
+	newActivitySection := Util.CloneSection(activitySection);
+	newActivitySection = Merge.MergeWorkoutActivityToSection(newActivitySection, heartRequest.ActionType);
+	newActivitySectionInfo := models.SectionInfo{}
+	newActivitySectionInfo.SectionMetaData = models.SectionMetaData{};
+	newActivitySectionInfo.Section = newActivitySection;
+	newSections = append(newSections, Util.CloneSection(newActivitySection))
+	newSectionInfos = append(newSectionInfos, newActivitySectionInfo)
+	heartResponse := models.HeartResponse{};
+	heartResponse.ActionType = heartRequest.ActionType
+	heartResponse.NewSections = newSections;
+	heartResponse.SectionInfos = newSectionInfos;
+	return heartResponse, nil
+}
+
+func fillLocationHeaderSection(locationHeaderSection models.Section, locationSection models.Section, heartRequest models.HeartRequest) (models.SectionInfo, models.Section) {
 	locationSectionInfo := models.SectionInfo{}
 	newLocationSection := Util.CloneSection(locationSection)
 	newLocationHeaderSection := Util.CloneSection(locationHeaderSection)
@@ -254,6 +314,31 @@ func fillLocationSection(locationSection models.Section, locations []models.Loca
 		newSectionInfos = append(newSectionInfos, newSectionInfo)
 	}
 	return newSectionInfos
+}
+
+func fillCategoryNavigationSection(navigationSection models.Section, heartRequest models.HeartRequest, categories map[string]string) (models.SectionInfo) {
+	keys := make([]string, 0, len(categories))
+
+	for k := range categories {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys);
+
+	fmt.Printf("Sorted Categories: %+v\n", keys)
+	newNavSection := Util.CloneSection(navigationSection);
+	fields := make([]models.Field, 0, len(keys))
+	for _, k := range keys {
+		field := models.Field{};
+		field.Value = k;
+		fields = append(fields, field)
+	}
+	newNavSection.Fields = fields;
+	newNavSectionInfo := models.SectionInfo{};
+	newNavMetaData := models.SectionMetaData{}
+	newNavSectionInfo.SectionMetaData = newNavMetaData
+	newNavSectionInfo.Section = newNavSection
+	return newNavSectionInfo
+
 }
 
 func getWorkouts(date time.Time, cred models.Credentials, workoutDayRepository mysqlrepo.IWorkoutDayRepository) ([]models.WorkoutDay) {

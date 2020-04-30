@@ -9,4 +9,5 @@ type QueryOptions struct {
 	NotIn map[string]string
 	Limit int64
 	Offset int64
+	IsEqual bool
 }

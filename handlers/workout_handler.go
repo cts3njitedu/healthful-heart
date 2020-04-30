@@ -17,6 +17,7 @@ type IWorkoutHandler interface {
 	GetWorkoutDays(w http.ResponseWriter, r *http.Request)
 	GetWorkoutDaysPage(w http.ResponseWriter, r *http.Request)
 	WorkoutDaysActions(w http.ResponseWriter, r *http.Request)
+	WorkoutActions(w http.ResponseWriter, r *http.Request)
 }
 
 func NewWorkoutHandler(workoutService services.IWorkoutService) *WorkoutHandler {
@@ -80,4 +81,24 @@ func (handler *WorkoutHandler) WorkoutDaysActions(w http.ResponseWriter, r *http
 
 	
 
+}
+
+func (handler *WorkoutHandler) WorkoutActions(w http.ResponseWriter, r *http.Request) {
+	creds, _ := r.Context().Value("credentials").(models.Credentials);
+	fmt.Printf("Handler credential: %+v\n", creds)
+	
+	
+	heartRequest := models.HeartRequest{};
+	err := json.NewDecoder(r.Body).Decode(&heartRequest)
+	
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	fmt.Printf("Heart Request: %+v\n", heartRequest.ActionType)
+
+	if heartRequest.ActionType == "VIEW_WORKOUTS_HEADER" {
+		heartResponse, _ := handler.workoutService.GetWorkoutPageHeader(heartRequest, creds)
+		json.NewEncoder(w).Encode(heartResponse)
+	}
 }

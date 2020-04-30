@@ -84,6 +84,18 @@ func (serv *WorkoutTypeService) GetCategoryCodeFromName(categoryName string) (st
 	}
 	return categoryNameToCd[categoryName], nil
 }
+
+func (serv *WorkoutTypeService) GetCategories() (map[string]string, map[string]string) {
+	newNameToCd := make(map[string]string)
+	for k, v := range categoryNameToCd {
+		newNameToCd[k] = v
+	}
+	newCdToName := make(map[string]string)
+	for k,v := range categoryCdToName {
+		newCdToName[k] = v
+	}
+	return newNameToCd, newCdToName
+}
 func getSubstring(s string, start int, end int) (string) {
 	runes := []rune(s)
 	substring := string(runes[start:end])

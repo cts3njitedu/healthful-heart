@@ -81,9 +81,46 @@ func MergeWorkDayToSection(section models.Section, workoutDay models.WorkoutDay,
 				field.IsDisabled = true;
 				field.IsHidden = true;
 			}
+		} else if field.FieldId == "LOCATION" {
+			switch actionType {
+			case models.VIEW_WORKOUTS_HEADER:
+				location := workoutDay.Location;
+				locationString := location.Location + ", " + location.City + ", " + location.State;
+				field.Value = locationString
+			default:
+				field.IsDisabled = true;
+			}
+			
 		}
 	} 
 	return section;
+}
+
+func MergeWorkoutActivityToSection(section models.Section, actionType string) (models.Section) {
+	for f := range section.Fields {
+		var field  = &section.Fields[f]
+		if (field.FieldId == "ADD_WORKOUT") {
+			switch actionType {
+			case models.VIEW_WORKOUTS_HEADER:
+				field.IsDisabled = false
+				field.IsHidden = false
+			default:
+				field.IsDisabled = true;
+				field.IsHidden = true;
+			}
+		} else if (field.FieldId == "GO_BACK") {
+			switch actionType {
+			case models.VIEW_WORKOUTS_HEADER:
+				field.IsDisabled = false
+				field.IsHidden = false
+			default:
+				field.IsDisabled = true;
+				field.IsHidden = true;
+
+			}
+		}
+	}
+	return section
 }
 
 func MergeWorkoutDayActivityToSection(section models.Section, actionType string) (models.Section) {

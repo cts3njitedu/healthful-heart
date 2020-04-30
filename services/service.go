@@ -46,6 +46,7 @@ type IWorkoutTypeService interface {
 	GetWorkoutTypeCode(categoryCd string, workoutTypeName string) string
 	GetCategoryNameFromCode(categoryCd string) (string, error)
 	GetCategoryCodeFromName(categoryName string) (string, error)
+	GetCategories() (map[string]string, map[string]string)
 
 }
 
@@ -59,4 +60,5 @@ type IWorkoutService interface {
 	GetWorkoutDaysPage(queryParams models.QueryParams, cred models.Credentials) (models.HeartResponse, error)
 	GetWorkoutDaysLocationsView(heartRequest models.HeartRequest, cred models.Credentials) (models.HeartResponse, error)
 	AddWorkoutDateLocation(heartRequest models.HeartRequest, cred models.Credentials) (models.HeartResponse, error)
+	GetWorkoutPageHeader(heartRequest models.HeartRequest, cred models.Credentials) (models.HeartResponse, error)
 }

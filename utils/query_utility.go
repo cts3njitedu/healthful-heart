@@ -68,16 +68,16 @@ func WhereQuery(queryOptions models.QueryOptions) ([]string, []interface{}) {
 		whereQuery = make([]string, 0, len(queryOptions.Where))
 		whereValues = make([]interface{}, 0, len(queryOptions.Where))
 		for k, v := range queryOptions.Where {
-			if nv, ok := v.(string); ok {
-				whereValues = append(whereValues, nv + "%")
-				whereQuery = append(whereQuery, fmt.Sprintf("%s LIKE ?", k))
-			} 
-			
-			
-			//else {
-				// whereValues = append(whereValues, v)
-				// whereQuery = append(whereQuery, fmt.Sprintf("UPPER(%s) = UPPER(?)", k))
-			// }
+
+			if !queryOptions.IsEqual {
+				if nv, ok := v.(string); ok {
+					whereValues = append(whereValues, nv + "%")
+					whereQuery = append(whereQuery, fmt.Sprintf("%s LIKE ?", k))
+				} 
+			} else {
+				whereValues = append(whereValues, v)
+				whereQuery = append(whereQuery, fmt.Sprintf("%s = ?", k))
+			}
 		}
 	}
 	newWhereQuery := make([]string, len(whereQuery))

@@ -12,8 +12,8 @@ type HeartRequest struct {
 	HeartFilter map[string]interface{}
 	HeartPagination HeartPagination
 	Date string
+	LocationId int64
 	SectionInfo `json:"sectionInfo"`
-
 }
 
 type HeartSort struct {
@@ -38,4 +38,5 @@ const (
 	ADD_WORKOUTDATE_LOCATION = "ADD_WORKOUTDATE_LOCATION"
 	DEFAULT_ACTIVITY = "DEFAULT_ACTIVITY"
 	LOCATION_SELECTED = "LOCATION_SELECTED"
+	VIEW_WORKOUTS_HEADER = "VIEW_WORKOUTS_HEADER"
 )

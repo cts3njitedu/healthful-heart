@@ -6,6 +6,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"time"
 	"fmt"
+	Util "github.com/cts3njitedu/healthful-heart/utils"
 )
 
 
@@ -17,6 +18,46 @@ type WorkoutRepository struct {
 
 func NewWorkoutRepository(connection connections.IMysqlConnection, groupRepo IGroupRepository) * WorkoutRepository {
 	return &WorkoutRepository{connection, groupRepo}
+}
+
+func (repo *WorkoutRepository) GetWorkoutByParams(queryOptions models.QueryOptions) ([]models.Workout, error) {
+	var workouts []models.Workout
+	db, err := repo.connection.GetGormConnection();
+	defer db.Close()
+	if err != nil {
+		panic(err.Error())
+	}
+	columns := map[string]models.QueryOptions {
+		"workout_day_id" : models.QueryOptions{},
+		"workout_id" : models.QueryOptions{},
+		"workout_type_cd" : models.QueryOptions{},
+		"cre_ts" : models.QueryOptions{},
+		"mod_ts" : models.QueryOptions{},
+		"del_ts" : models.QueryOptions{},
+		"version_nb" : models.QueryOptions{},
+	}
+
+	sortMap := map[string]models.QueryOptions {
+		"asc" : models.QueryOptions{},
+		"desc" : models.QueryOptions{},
+	}
+	totalQuery, values := Util.SqlQueryBuilder(queryOptions, columns, sortMap, "Workout");
+
+	rows, err := db.Raw(totalQuery, values...).Rows()
+	
+	if err != nil {
+		fmt.Printf("There was an error: %+v\n", err)
+	} else {
+		for rows.Next() {
+			workout := models.Workout{};
+			if err := db.ScanRows(rows, &workout); err != nil {
+				fmt.Printf("Error: %+v\n", err)
+			}
+			workouts = append(workouts, workout)
+		}
+	}
+	return workouts, nil;
+
 }
 
 func (repo * WorkoutRepository) SaveWorkout(workDay *models.Workout, tx *gorm.DB) error {

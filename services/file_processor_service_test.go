@@ -136,7 +136,9 @@ func (serv WorkoutTypeServiceMock) GetCategoryNameFromCode(categoryCd string) (s
 	}	
 	return "", errors.New("doesn't exist")
 }
-
+func (serv WorkoutTypeServiceMock) GetCategories() (map[string]string, map[string]string) {
+	return nil, nil
+}
 type WorkoutRepositoryMock struct {}
 
 func (repo WorkoutRepositoryMock) SaveWorkoutDay(workDay *models.WorkoutDay) error {

@@ -40,6 +40,7 @@ type IWorkoutDayRepository interface {
 
 type IWorkoutRepository interface {
 	SaveWorkout(workDay *models.Workout, tx *gorm.DB) error
+	GetWorkoutByParams(queryOptions models.QueryOptions) ([]models.Workout, error)
 }
 
 type IGroupRepository interface {
