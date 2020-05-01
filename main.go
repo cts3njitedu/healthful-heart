@@ -62,6 +62,8 @@ func workoutRoutes(r *mux.Router, prefix string, chain alice.Chain) {
 	sub := mux.NewRouter()
 	validateTokenHandler := factories.GetTokenHandler().ValidateToken;
 	preChain := alice.New(handlers.Logging, validateTokenHandler);
+	sub.HandleFunc(prefix, factories.GetWorkoutHandler().WorkoutActions).Methods("GET", "POST")
+	sub.HandleFunc(prefix + "/", factories.GetWorkoutHandler().WorkoutActions).Methods("GET", "POST")
 	sub.HandleFunc(prefix + "/headers", factories.GetWorkoutHandler().WorkoutActions).Methods("GET", "POST")
 	r.Handle(prefix, preChain.Then(sub))
 	r.Handle(prefix + "/{path:.*}", preChain.Then(sub));

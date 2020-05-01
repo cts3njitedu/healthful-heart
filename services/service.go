@@ -63,4 +63,5 @@ type IWorkoutService interface {
 	GetWorkoutDaysLocationsView(heartRequest models.HeartRequest, cred models.Credentials) (models.HeartResponse, error)
 	AddWorkoutDateLocation(heartRequest models.HeartRequest, cred models.Credentials) (models.HeartResponse, error)
 	GetWorkoutPageHeader(heartRequest models.HeartRequest, cred models.Credentials) (models.HeartResponse, error)
+	GetWorkouts(heartRequest models.HeartRequest, cred models.Credentials) (models.HeartResponse, error)
 }

@@ -193,6 +193,32 @@ func (serv * WorkoutService) AddWorkoutDateLocation(heartRequest models.HeartReq
 	
 }
 
+func (serv *WorkoutService) GetWorkouts(heartRequest models.HeartRequest, cred models.Credentials) (models.HeartResponse, error) {
+	dbPage :=serv.pageRepository.GetPage("WORKOUTS_PAGE");
+	workoutSection := Util.FindSection("WORKOUT_SECTION", dbPage);
+
+	workoutOptions := models.QueryOptions{}
+	selectClause := []string{"Workout_Type_Cd", "Workout_Id", "Workout_Day_Id"};
+	workoutOptions.Select = selectClause
+
+	workoutOptions.Where = map[string]interface{} {
+		"Workout_Day_Id" : heartRequest.WorkoutDayId,
+	}
+	workoutOptions.Order = map[string]string{
+		"workout_id" : "asc",
+	}
+	workoutOptions.IsEqual = true
+	workouts, _ := serv.workoutRepository.GetWorkoutByParams(workoutOptions)
+	fmt.Printf("Workouts: %+v\n", workouts)
+	categoriesAndWorkouts := serv.workoutTypeService.GetCategoriesAndWorkoutTypes();
+	_, categoryCdToName := serv.workoutTypeService.GetCategories();
+	newSectionInfos := fillWorkoutSection(workoutSection, heartRequest,categoryCdToName, categoriesAndWorkouts, workouts)
+
+	heartResponse := models.HeartResponse{};
+	heartResponse.ActionType = heartRequest.ActionType
+	heartResponse.SectionInfos = newSectionInfos;
+	return heartResponse, nil
+}
 func (serv * WorkoutService) GetWorkoutPageHeader(heartRequest models.HeartRequest, cred models.Credentials) (models.HeartResponse, error) {
 	dbPage :=serv.pageRepository.GetPage("WORKOUTS_PAGE");
 	date, _ := time.Parse("20060102", heartRequest.Date)
@@ -394,6 +420,57 @@ func fillNewWorkoutSection(workoutSection models.Section, heartRequest models.He
 	}
 
 	return newWorkoutSection
+}
+
+func fillWorkoutSection(workoutSection models.Section, heartRequest models.HeartRequest,categories map[string]string, 
+	catWorkouts map[string]map[string]string, workouts []models.Workout) ([]models.SectionInfo) {
+	
+	newSectionInfos := make([]models.SectionInfo, 0, len(workouts));
+	for _, workout := range workouts {
+		sectionInfo := models.SectionInfo{}
+		sectionMetaData := models.SectionMetaData{};
+		sectionMetaData.Id = strconv.FormatInt(workout.Workout_Id,10)
+		workType := workout.Workout_Type_Cd;
+		var catCode string;
+		var workoutName string;
+		var catName string;
+		for c, v := range catWorkouts {
+			if wc, ok := v[workType]; ok {
+				catCode = c;
+				workoutName = wc
+				catName = categories[c]
+				break;
+			}
+		}
+
+		catItem := models.Item{}
+		catItem.Id = catCode;
+		catItem.Item = catName;
+		catItems := make([]models.Item, 0, 1);
+		catItems = append(catItems, catItem)
+
+		workItem := models.Item{}
+		workItem.Id = workType
+		workItem.Item = workoutName;
+		workItems := make([]models.Item, 0, 1)
+		workItems = append(workItems, workItem)
+		newWorkoutSection := Util.CloneSection(workoutSection);
+		for f := range newWorkoutSection.Fields {
+			field := &newWorkoutSection.Fields[f]
+			if (field.FieldId == "CATEGORY_NAME") {
+				field.Value = catCode;
+				field.Items = catItems;
+			} else if field.FieldId == "WORKOUT_TYPE_DESC" {
+				field.Value = workType
+				field.Items = workItems;
+			}
+		}
+		sectionInfo.SectionMetaData = sectionMetaData
+		sectionInfo.Section = newWorkoutSection 
+
+		newSectionInfos = append(newSectionInfos, sectionInfo)
+	}
+	return newSectionInfos
 }
 
 func getWorkouts(date time.Time, cred models.Credentials, workoutDayRepository mysqlrepo.IWorkoutDayRepository) ([]models.WorkoutDay) {

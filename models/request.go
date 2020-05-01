@@ -13,6 +13,7 @@ type HeartRequest struct {
 	HeartPagination HeartPagination
 	Date string
 	LocationId int64
+	WorkoutDayId int64
 	SectionInfo `json:"sectionInfo"`
 }
 
@@ -39,4 +40,5 @@ const (
 	DEFAULT_ACTIVITY = "DEFAULT_ACTIVITY"
 	LOCATION_SELECTED = "LOCATION_SELECTED"
 	VIEW_WORKOUTS_HEADER = "VIEW_WORKOUTS_HEADER"
+	VIEW_WORKOUTS = "VIEW_WORKOUTS"
 )

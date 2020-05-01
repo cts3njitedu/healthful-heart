@@ -100,5 +100,8 @@ func (handler *WorkoutHandler) WorkoutActions(w http.ResponseWriter, r *http.Req
 	if heartRequest.ActionType == "VIEW_WORKOUTS_HEADER" {
 		heartResponse, _ := handler.workoutService.GetWorkoutPageHeader(heartRequest, creds)
 		json.NewEncoder(w).Encode(heartResponse)
+	} else if heartRequest.ActionType == "VIEW_WORKOUTS" {
+		heartResponse, _ := handler.workoutService.GetWorkouts(heartRequest, creds)
+		json.NewEncoder(w).Encode(heartResponse)
 	}
 }
