@@ -11,3 +11,8 @@ type QueryOptions struct {
 	Offset int64
 	IsEqual bool
 }
+
+const (
+	WORKOUT_DAY_ALIAS = "wDay"
+	LOCATION_ALIAS = "loc"
+) 

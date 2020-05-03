@@ -31,8 +31,7 @@ func main() {
 	uploadFile := http.HandlerFunc(factories.GetFileHandler().UploadFile);
 	getWorkoutDays := http.HandlerFunc(factories.GetWorkoutHandler().GetWorkoutDays);
 	preChain := alice.New(handlers.Logging, validateTokenHandler);
-	workoutDayRoutes(r, "/workoutDays", preChain)
-	workoutRoutes(r, "/workouts", preChain)
+	workoutDaysRoutes(r, "/workoutDays", preChain)
 	r.Handle("/upload", alice.New(handlers.Logging, validateTokenHandler).Then(uploadFile)).Methods("POST")
 	r.Handle("/about", alice.New(handlers.Logging, validateTokenHandler).Then(getAboutPage)).Methods("GET")
 	r.Handle("/calendar", alice.New(handlers.Logging, validateTokenHandler).Then(getWorkoutDays)).Methods("GET")
@@ -49,26 +48,27 @@ func main() {
 }
 
 
-func workoutDayRoutes(r *mux.Router, prefix string, chain alice.Chain) {
+func workoutDaysRoutes(r *mux.Router, prefix string, chain alice.Chain) {
 	sub := mux.NewRouter()
 	validateTokenHandler := factories.GetTokenHandler().ValidateToken;
 	preChain := alice.New(handlers.Logging, validateTokenHandler);
 	sub.HandleFunc(prefix + "/{date}" ,factories.GetWorkoutHandler().WorkoutDaysActions).Methods("GET", "POST");
 	sub.HandleFunc(prefix + "/{date}/locations", factories.GetWorkoutHandler().WorkoutDaysActions).Methods("POST");
+	sub.HandleFunc(prefix + "/{date}/locations/{locationId}", factories.GetWorkoutHandler().WorkoutActions).Methods("GET", "POST")
 	r.Handle(prefix + "/{path:.*}", preChain.Then(sub));
 }
 
-func workoutRoutes(r *mux.Router, prefix string, chain alice.Chain) {
-	sub := mux.NewRouter()
-	validateTokenHandler := factories.GetTokenHandler().ValidateToken;
-	preChain := alice.New(handlers.Logging, validateTokenHandler);
-	sub.HandleFunc(prefix, factories.GetWorkoutHandler().WorkoutActions).Methods("GET", "POST")
-	sub.HandleFunc(prefix + "/", factories.GetWorkoutHandler().WorkoutActions).Methods("GET", "POST")
-	sub.HandleFunc(prefix + "/headers", factories.GetWorkoutHandler().WorkoutActions).Methods("GET", "POST")
-	r.Handle(prefix, preChain.Then(sub))
-	r.Handle(prefix + "/{path:.*}", preChain.Then(sub));
+// func workoutRoutes(r *mux.Router, prefix string, chain alice.Chain) {
+// 	sub := mux.NewRouter()
+// 	validateTokenHandler := factories.GetTokenHandler().ValidateToken;
+// 	preChain := alice.New(handlers.Logging, validateTokenHandler);
+// 	sub.HandleFunc(prefix, factories.GetWorkoutHandler().WorkoutActions).Methods("GET", "POST")
+// 	sub.HandleFunc(prefix + "/", factories.GetWorkoutHandler().WorkoutActions).Methods("GET", "POST")
+// 	sub.HandleFunc(prefix + "/headers", factories.GetWorkoutHandler().WorkoutActions).Methods("GET", "POST")
+// 	r.Handle(prefix, preChain.Then(sub))
+// 	r.Handle(prefix + "/{path:.*}", preChain.Then(sub));
 
-}
+// }
 
 func GetPort() string {
 	var port = os.Getenv("PORT")

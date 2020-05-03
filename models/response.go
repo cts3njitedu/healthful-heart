@@ -16,6 +16,7 @@ type SectionInfo struct {
 
 type SectionMetaData struct {
 	Id string `json:"id"`
+	AssociatedIds map[string]interface{} `json:"associatedIds"`
 	Page int64  `json:"page"`
 	TableHeaders []string `json:"tableHeaders"`
 }

@@ -99,6 +99,17 @@ func (serv * WorkoutService) GetWorkoutDaysLocationsView(heartRequest models.Hea
 	workoutQueryMap := map[string]string {
 		"location_id" : workoutQuery,
 	}
+	
+	associatedIds := make(map[string]interface{});
+	// workoutDayOptions := models.QueryOptions{}
+	// workoutDayOptions.Where = map[string]interface{} {
+	// 	"WORKOUT_DATE" : dateFormat,
+	// 	"USER_ID" : cred.UserId,
+	// }
+	// workoutDayOptions.Select = []string{"Workout_Day_Id", "Location_Id"}
+	// workoutDayOptions.IsEqual = true;
+	// workoutDays, _ := serv.workoutDayRepository.GetWorkoutDaysByParams(workoutDayOptions)
+	// workoutDayMap := make(map[string]models.WorkoutDay);
 	if heartRequest.ActionType == models.VIEW_WORKOUTDATE_LOCATIONS {
 		locationOptions.In = workoutQueryMap;
 	} else if heartRequest.ActionType == models.VIEW_NON_WORKOUTDATE_LOCATIONS {
@@ -106,7 +117,7 @@ func (serv * WorkoutService) GetWorkoutDaysLocationsView(heartRequest models.Hea
 	}
 	locations, _ = serv.locationRepository.GetLocationsQueryParams(locationOptions)
 	
-	locationSectionInfos := fillLocationSection(locationSection, locations, heartRequest);
+	locationSectionInfos := fillLocationSection(locationSection, locations, heartRequest,associatedIds);
 	totalLength = len(locationSectionInfos) + 5;
 	
 
@@ -214,9 +225,19 @@ func (serv *WorkoutService) GetWorkouts(heartRequest models.HeartRequest, cred m
 	_, categoryCdToName := serv.workoutTypeService.GetCategories();
 	newSectionInfos := fillWorkoutSection(workoutSection, heartRequest,categoryCdToName, categoriesAndWorkouts, workouts)
 
+	workoutMap := make(map[string]models.Workout)
+	for _, v := range workouts {
+		workoutMap[v.Workout_Type_Cd] = models.Workout{}
+	}
+
+	newWorkoutSection := fillNewWorkoutSection(workoutSection, heartRequest, categoryCdToName, categoriesAndWorkouts, workoutMap)
+	newSections := make([]models.Section, 0, 5);
+	newSections = append(newSections, newWorkoutSection)
+
 	heartResponse := models.HeartResponse{};
 	heartResponse.ActionType = heartRequest.ActionType
 	heartResponse.SectionInfos = newSectionInfos;
+	heartResponse.NewSections = newSections
 	return heartResponse, nil
 }
 func (serv * WorkoutService) GetWorkoutPageHeader(heartRequest models.HeartRequest, cred models.Credentials) (models.HeartResponse, error) {
@@ -228,7 +249,6 @@ func (serv * WorkoutService) GetWorkoutPageHeader(heartRequest models.HeartReque
 	headerSection := Util.FindSection("HEADER_SECTION", dbPage)
 	navigationSection := Util.FindSection("NAVIGATION_SECTION", dbPage)
 	activitySection := Util.FindSection("ACTIVITY_SECTION", dbPage)
-	workoutSection := Util.FindSection("WORKOUT_SECTION", dbPage)
 
 	newSections := make([]models.Section, 0, 5);
 	
@@ -236,12 +256,13 @@ func (serv * WorkoutService) GetWorkoutPageHeader(heartRequest models.HeartReque
 	workoutDayOptions.Where = map[string]interface{} {
 		"WORKOUT_DATE" : dateFormat,
 		"USER_ID" : cred.UserId,
+		"LOCATION_ID": heartRequest.LocationId,
 	}
 	workoutDayOptions.IsEqual = true;
 	workoutDays, _ := serv.workoutDayRepository.GetWorkoutDaysByParams(workoutDayOptions)
 	fmt.Printf("Workout Days: %+v\n", workoutDays)
 	newSectionInfos := make([]models.SectionInfo, 0, 5);
-	workouts := make([]models.Workout, 0, 5)
+
 	if len(workoutDays) == 1 {
 		workoutDayHeader := workoutDays[0];
 		dateFormat = date.Format("2006-01-02")
@@ -258,30 +279,15 @@ func (serv * WorkoutService) GetWorkoutPageHeader(heartRequest models.HeartReque
 		newHeaderInfo.SectionMetaData = newHeaderMetaData
 		newHeaderInfo.Section = newHeaderSection;
 		newSectionInfos = append(newSectionInfos, newHeaderInfo)
-		workoutOptions := models.QueryOptions{}
-		selectClause := []string{"Workout_Type_Cd", ""};
-		workoutOptions.Select = selectClause
-		workoutOptions.Where = map[string]interface{} {
-			"workout_day_id" : workoutId,
-		}
-		workoutOptions.IsEqual = true
-		workouts, _ = serv.workoutRepository.GetWorkoutByParams(workoutOptions)
-		fmt.Printf("Workouts: %+v\n", workouts)
 	}
 
-	categoryNameToCd, categoryCdToName := serv.workoutTypeService.GetCategories();
-	categoriesAndWorkouts := serv.workoutTypeService.GetCategoriesAndWorkoutTypes();
+	categoryNameToCd, _ := serv.workoutTypeService.GetCategories();
+	
 	navSectionInfo := fillCategoryNavigationSection(navigationSection, heartRequest, categoryNameToCd)
 	newSections = append(newSections, Util.CloneSection(navSectionInfo.Section))
 	newSectionInfos = append(newSectionInfos, navSectionInfo)
 	
-	workoutMap := make(map[string]models.Workout)
-	for _, v := range workouts {
-		workoutMap[v.Workout_Type_Cd] = models.Workout{}
-	}
-
-	newWorkoutSection := fillNewWorkoutSection(workoutSection, heartRequest, categoryCdToName, categoriesAndWorkouts, workoutMap)
-	newSections = append(newSections, newWorkoutSection)
+	
 
 	newActivitySection := Util.CloneSection(activitySection);
 	newActivitySection = Merge.MergeWorkoutActivityToSection(newActivitySection, heartRequest.ActionType);
@@ -344,7 +350,7 @@ func fillFilterSection(filterSection models.Section, locationSection models.Sect
 	return filterSectionInfo, cleanFilterSection;
 }
 
-func fillLocationSection(locationSection models.Section, locations []models.Location, heartRequest models.HeartRequest) ([]models.SectionInfo) {
+func fillLocationSection(locationSection models.Section, locations []models.Location, heartRequest models.HeartRequest, associatedIds map[string]interface{}) ([]models.SectionInfo) {
 	fmt.Printf("Locations: %+v\n", locations)
 	newSectionInfos := make([]models.SectionInfo, 0, len(locations))
 	for _, loc := range locations {
@@ -354,6 +360,7 @@ func fillLocationSection(locationSection models.Section, locations []models.Loca
 		newSection.IsHidden = false;
 		locationMetaData := models.SectionMetaData{};
 		locationMetaData.Id = strconv.FormatInt(loc.Location_Id,10)
+		locationMetaData.AssociatedIds = associatedIds
 		locationMetaData.Page = heartRequest.HeartPagination.Page
 		newSectionInfo.SectionMetaData = locationMetaData
 		newSectionInfo.Section = newSection

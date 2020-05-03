@@ -87,7 +87,7 @@ func (handler *WorkoutHandler) WorkoutActions(w http.ResponseWriter, r *http.Req
 	creds, _ := r.Context().Value("credentials").(models.Credentials);
 	fmt.Printf("Handler credential: %+v\n", creds)
 	
-	
+	vars := mux.Vars(r)
 	heartRequest := models.HeartRequest{};
 	err := json.NewDecoder(r.Body).Decode(&heartRequest)
 	
@@ -95,6 +95,8 @@ func (handler *WorkoutHandler) WorkoutActions(w http.ResponseWriter, r *http.Req
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	heartRequest.Date = vars["date"] 
+	heartRequest.LocationId = vars["locationId"]
 	fmt.Printf("Heart Request: %+v\n", heartRequest.ActionType)
 
 	if heartRequest.ActionType == "VIEW_WORKOUTS_HEADER" {

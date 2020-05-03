@@ -85,7 +85,7 @@ func MergeWorkDayToSection(section models.Section, workoutDay models.WorkoutDay,
 			switch actionType {
 			case models.VIEW_WORKOUTS_HEADER:
 				location := workoutDay.Location;
-				locationString := location.Location + ", " + location.City + ", " + location.State;
+				locationString := location.Name + ", " + location.City + ", " + location.State;
 				field.Value = locationString
 			default:
 				field.IsDisabled = true;

@@ -12,8 +12,8 @@ type HeartRequest struct {
 	HeartFilter map[string]interface{}
 	HeartPagination HeartPagination
 	Date string
-	LocationId int64
-	WorkoutDayId int64
+	LocationId string
+	WorkoutDayId string
 	SectionInfo `json:"sectionInfo"`
 }
 
