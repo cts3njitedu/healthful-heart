@@ -262,13 +262,15 @@ func (serv * WorkoutService) GetWorkoutPageHeader(heartRequest models.HeartReque
 	workoutDays, _ := serv.workoutDayRepository.GetWorkoutDaysByParams(workoutDayOptions)
 	fmt.Printf("Workout Days: %+v\n", workoutDays)
 	newSectionInfos := make([]models.SectionInfo, 0, 5);
-
-	if len(workoutDays) == 1 {
-		workoutDayHeader := workoutDays[0];
+	workoutDayHeader := models.WorkoutDay{};
+	if len(workoutDays) <= 1 {
+		if len(workoutDays) == 1 {
+			workoutDayHeader = workoutDays[0];
+			location, _ := serv.locationService.GetLocation(workoutDayHeader.Location_Id)
+			workoutDayHeader.Location = location
+		}
 		dateFormat = date.Format("2006-01-02")
 		workoutDayHeader.Workout_Date = dateFormat
-		location, _ := serv.locationService.GetLocation(workoutDayHeader.Location_Id)
-		workoutDayHeader.Location = location
 		newHeaderSection := Util.CloneSection(headerSection);
 		newHeaderSection = Merge.MergeWorkDayToSection(newHeaderSection, workoutDayHeader, heartRequest.ActionType)
 		newSections = append(newSections, Util.CloneSection(newHeaderSection))
@@ -383,6 +385,7 @@ func fillCategoryNavigationSection(navigationSection models.Section, heartReques
 	for _, k := range keys {
 		field := models.Field{};
 		field.Value = k;
+		field.Name = categories[k];
 		fields = append(fields, field)
 	}
 	newNavSection.Fields = fields;

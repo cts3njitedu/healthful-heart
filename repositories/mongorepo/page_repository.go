@@ -24,6 +24,7 @@ func NewPageRepository(connection connections.IMongoConnection, environmentUtil 
 func (pageRepo PageRepository) GetPage(pageType string) models.Page {
 	var result models.Page
 	client,err:=pageRepo.connection.GetConnection();
+	
 	if err!=nil {
 		log.Println(err)
 		panic(err)
@@ -36,6 +37,11 @@ func (pageRepo PageRepository) GetPage(pageType string) models.Page {
 	filter:=bson.M{"pageId": pageType};
 	fmt.Printf("Retrieving %s\n",pageType);
 	err=collection.FindOne(context.TODO(), filter).Decode(&result)
+	if err!= nil {
+		log.Println(err)
+		panic(err);
+	}
+	err = client.Disconnect(context.TODO())
 	if err!= nil {
 		log.Println(err)
 		panic(err);

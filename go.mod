@@ -7,7 +7,6 @@ require (
 	github.com/360EntSecGroup-Skylar/excelize v1.4.1
 	github.com/dgrijalva/jwt-go v3.2.1-0.20200107013213-dc14462fd587+incompatible
 	github.com/go-sql-driver/mysql v1.4.1
-	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/golang/groupcache v0.0.0-20191227052852-215e87163ea7 // indirect
 	github.com/golang/protobuf v1.3.3-0.20191022195553-ed6926b37a63 // indirect
 	github.com/golang/snappy v0.0.2-0.20190904063534-ff6b7dc882cf // indirect
@@ -21,9 +20,8 @@ require (
 	github.com/streadway/amqp v0.0.0-20200108173154-1c71cc93ed71
 	github.com/stretchr/testify v1.4.0
 	github.com/tidwall/pretty v1.0.1 // indirect
-	github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c // indirect
 	github.com/xdg/stringprep v1.0.1-0.20180714160509-73f8eece6fdc // indirect
-	go.mongodb.org/mongo-driver v1.2.1-0.20200123200554-a517f8e2ad40
+	go.mongodb.org/mongo-driver v1.3.2
 	go.opencensus.io v0.22.3-0.20191204220248-643eada29081 // indirect
 	golang.org/x/crypto v0.0.0-20200108215511-5d647ca15757
 	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553
