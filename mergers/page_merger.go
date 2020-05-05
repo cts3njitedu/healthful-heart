@@ -3,6 +3,9 @@ package mergers
 import (
 
 	"github.com/cts3njitedu/healthful-heart/models"
+	"time"
+	"fmt"
+	"strconv"
 )
 
 
@@ -68,6 +71,18 @@ func MergeWorkDayToSection(section models.Section, workoutDay models.WorkoutDay,
 			case models.VIEW_NON_WORKOUTDATE_LOCATIONS:
 				field.IsDisabled = true;
 				field.IsHidden = true;
+			case models.VIEW_WORKOUTS_HEADER:
+				field.IsDisabled = true;
+				field.IsHidden = true;
+				fmt.Println(workoutDay.Workout_Date);
+				date, _ := time.Parse("2006-01-02", field.Value);
+				year, month, day := date.Date()
+				fmt.Printf("Ball:%v, %v, %v",year, month, day)
+				weekDay := date.Weekday();
+				monthString := time.Month(month)
+				weekDayString := weekDay.String()
+				dateString :=  weekDayString + ", " + monthString.String() + " " + strconv.FormatInt(int64(day), 10) + ", " + strconv.FormatInt(int64(year), 10)
+				field.Value = dateString
 			default:
 				field.IsDisabled = false;
 				field.IsHidden = false;
