@@ -6,6 +6,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"time"
 	"fmt"
+	Util "github.com/cts3njitedu/healthful-heart/utils"
 )
 
 type GroupRepository struct {
@@ -15,7 +16,51 @@ type GroupRepository struct {
 func NewGroupRepository(connection connections.IMysqlConnection) * GroupRepository {
 	return &GroupRepository{connection}
 }
+func (repo *GroupRepository) GetGroupByParams(queryOptions models.QueryOptions) ([]models.Group, error) {
+	var groups []models.Group
+	db, err := repo.connection.GetGormConnection();
+	defer db.Close()
+	if err != nil {
+		panic(err.Error())
+	}
 
+	columns := map[string]models.QueryOptions {
+		"workout_day_id" : models.QueryOptions{},
+		"workout_id" : models.QueryOptions{},
+		"group_id" : models.QueryOptions{},
+		"sequence" : models.QueryOptions{},
+		"sets" : models.QueryOptions{},
+		"repetitions" : models.QueryOptions{},
+		"weight" : models.QueryOptions{},
+		"variation" : models.QueryOptions{},
+		"duration" : models.QueryOptions{},
+		"cre_ts" : models.QueryOptions{},
+		"mod_ts" : models.QueryOptions{},
+		"del_ts" : models.QueryOptions{},
+		"version_nb" : models.QueryOptions{},
+	}
+
+	sortMap := map[string]models.QueryOptions {
+		"asc" : models.QueryOptions{},
+		"desc" : models.QueryOptions{},
+	}
+	totalQuery, values := Util.SqlQueryBuilder(queryOptions, columns, sortMap, "`Group`");
+
+	rows, err := db.Raw(totalQuery, values...).Rows()
+
+	if err != nil {
+		fmt.Printf("There was an error: %+v\n", err)
+	} else {
+		for rows.Next() {
+			group := models.Group{};
+			if err := db.ScanRows(rows, &group); err != nil {
+				fmt.Printf("Error: %+v\n", err)
+			}
+			groups = append(groups, group)
+		}
+	}
+	return groups, nil;
+}
 func (repo *GroupRepository) SaveGroup(group *models.Group, tx *gorm.DB) error {
 	defer func() {
 		if r := recover(); r != nil {

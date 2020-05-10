@@ -45,6 +45,7 @@ type IWorkoutRepository interface {
 
 type IGroupRepository interface {
 	SaveGroup(group *models.Group, tx *gorm.DB) error
+	GetGroupByParams(queryOptions models.QueryOptions) ([]models.Group, error)
 }
 
 type ILocationRepository interface {

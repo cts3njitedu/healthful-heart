@@ -87,7 +87,7 @@ func init() {
 	locationService = services.NewLocationService(locationRepository)
 	groupParserService = services.NewGroupParserService()
 	workoutTypeService = services.NewWorkoutTypeService(workoutTypeRepository,categoryRepository)
-	workoutService = services.NewWorkoutService(locationService, workoutDayRepository, workRepository, pageRepository, locationRepository, workoutTypeService)
+	workoutService = services.NewWorkoutService(locationService, workoutDayRepository, workRepository, pageRepository, locationRepository, workoutTypeService, groupRepository)
 	fileProcessorService = services.NewFileProcessorService(workoutRepository, fileRepository, workoutTypeService, groupParserService,workoutDayRepository)
 	rabbitService = services.NewRabbitService(rabbitConnection, environmentUtiliy, fileProcessorService)
 	authenticationService = services.NewAuthenticationService(pageRepository, restructureService, enricherExecutor)

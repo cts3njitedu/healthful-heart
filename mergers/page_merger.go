@@ -113,6 +113,83 @@ func MergeWorkDayToSection(section models.Section, workoutDay models.WorkoutDay,
 	return section;
 }
 
+func MergeGroupToSection(section models.Section, actionType string) (models.Section) {
+	for f := range section.Fields {
+		var field = &section.Fields[f];
+		if (field.FieldId == "EDIT" || field.FieldId == "DELETE") {
+			switch actionType {
+			case models.VIEW_WORKOUT_DETAILS:
+				field.IsDisabled = true;
+				field.IsHidden = true;
+			default:
+				field.IsDisabled = false;
+				field.IsHidden = false;
+			}
+		} else if (field.FieldId == "CLOSE" || field.FieldId == "SAVE") {
+			switch actionType {
+				case models.VIEW_WORKOUT_DETAILS: 
+					field.IsDisabled = false;
+					field.IsHidden = false;
+				default:
+					field.IsDisabled = true;
+					field.IsHidden = true;
+			}
+		}
+	}
+	return section;
+}
+func MergeWorkoutDetailsActivityToSection(section models.Section, actionType string) (models.Section) {
+	for f := range section.Fields {
+		var field = &section.Fields[f]
+		if field.FieldId == "ADD_GROUP" {
+			switch actionType {
+			case models.VIEW_WORKOUT_DETAILS_META_INFO:
+				field.IsDisabled = false;
+				field.IsHidden = false;
+			default:
+				field.IsDisabled = true;
+				field.IsHidden = true;
+			}
+		} else if (field.FieldId == "CANCEL_CHANGES") {
+			switch actionType {
+			case models.VIEW_WORKOUT_DETAILS_META_INFO:
+				field.IsDisabled = true;
+				field.IsHidden = false;
+			default:
+				field.IsDisabled = true;
+				field.IsHidden = false;
+			}
+		} else if (field.FieldId == "CLOSE") {
+			switch actionType {
+			case models.VIEW_WORKOUT_DETAILS_META_INFO:
+				field.IsDisabled = false;
+				field.IsHidden = false;
+			default:
+				field.IsDisabled = true;
+				field.IsHidden = true;
+			}
+		} else if (field.FieldId == "SUBMIT_CONTINUE") {
+			switch actionType {
+			case models.VIEW_WORKOUT_DETAILS_META_INFO:
+				field.IsDisabled = true;
+				field.IsHidden = false;
+			default:
+				field.IsDisabled = true;
+				field.IsHidden = true;
+			}
+		} else if (field.FieldId == "SUBMIT_CLOSE") {
+			switch actionType {
+			case models.VIEW_WORKOUT_DETAILS_META_INFO:
+				field.IsDisabled = true;
+				field.IsHidden = false;
+			default:
+				field.IsDisabled = true;
+				field.IsHidden = true;
+			}
+		} 
+	}
+	return section
+}
 func MergeWorkoutActivityToSection(section models.Section, actionType string) (models.Section) {
 	for f := range section.Fields {
 		var field  = &section.Fields[f]

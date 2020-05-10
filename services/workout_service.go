@@ -20,12 +20,14 @@ type WorkoutService struct {
 	pageRepository mongorepo.IPageRepository
 	locationRepository mysqlrepo.ILocationRepository
 	workoutTypeService IWorkoutTypeService
+	groupRepository mysqlrepo.IGroupRepository
 }
 
 
 func NewWorkoutService(locationService ILocationService, workoutDayRepository mysqlrepo.IWorkoutDayRepository, 
-	workoutRepository mysqlrepo.IWorkoutRepository, pageRepository mongorepo.IPageRepository, locationRepository mysqlrepo.ILocationRepository, workoutTypeService IWorkoutTypeService) *WorkoutService {
-	return &WorkoutService{locationService, workoutDayRepository, workoutRepository, pageRepository, locationRepository, workoutTypeService}
+	workoutRepository mysqlrepo.IWorkoutRepository, pageRepository mongorepo.IPageRepository, locationRepository mysqlrepo.ILocationRepository, 
+	workoutTypeService IWorkoutTypeService, groupRepository mysqlrepo.IGroupRepository) *WorkoutService {
+	return &WorkoutService{locationService, workoutDayRepository, workoutRepository, pageRepository, locationRepository, workoutTypeService, groupRepository}
 }
 
 func (serv * WorkoutService) GetWorkoutDays(queryParams models.QueryParams, cred models.Credentials) ([]models.WorkoutDay, error) {
@@ -209,7 +211,7 @@ func (serv *WorkoutService) GetWorkouts(heartRequest models.HeartRequest, cred m
 	workoutSection := Util.FindSection("WORKOUT_SECTION", dbPage);
 
 	workoutOptions := models.QueryOptions{}
-	selectClause := []string{"Workout_Type_Cd", "Workout_Id", "Workout_Day_Id"};
+	selectClause := []string{"Workout_Type_Cd", "Workout_Id", "Workout_Day_Id", "Version_Nb"};
 	workoutOptions.Select = selectClause
 
 	workoutOptions.Where = map[string]interface{} {
@@ -298,6 +300,84 @@ func (serv * WorkoutService) GetWorkoutPageHeader(heartRequest models.HeartReque
 	newActivitySectionInfo.Section = newActivitySection;
 	newSections = append(newSections, Util.CloneSection(newActivitySection))
 	newSectionInfos = append(newSectionInfos, newActivitySectionInfo)
+	heartResponse := models.HeartResponse{};
+	heartResponse.ActionType = heartRequest.ActionType
+	heartResponse.NewSections = newSections;
+	heartResponse.SectionInfos = newSectionInfos;
+	return heartResponse, nil
+}
+
+func (serv * WorkoutService) GetWorkoutDetails(heartRequest models.HeartRequest, cred models.Credentials) (models.HeartResponse, error) {
+	dbPage :=serv.pageRepository.GetPage("WORKOUT_DETAILS_PAGE");
+
+	workoutSection := Util.FindSection("WORKOUT_SECTION", dbPage)
+	groupSection := Util.FindSection("GROUP_SECTION", dbPage)
+
+	newSections := make([]models.Section, 0, 5);
+
+	workoutOptions := models.QueryOptions{}
+	selectClause := []string{"Workout_Type_Cd", "Workout_Id", "Workout_Day_Id", "Version_Nb"};
+	workoutOptions.Select = selectClause
+
+	workoutOptions.Where = map[string]interface{} {
+		"Workout_Id" : heartRequest.WorkoutId,
+	}
+	workoutOptions.IsEqual = true
+	workouts, _ := serv.workoutRepository.GetWorkoutByParams(workoutOptions)
+	fmt.Printf("Workouts: %+v\n", workouts)
+	categoriesAndWorkouts := serv.workoutTypeService.GetCategoriesAndWorkoutTypes();
+	_, categoryCdToName := serv.workoutTypeService.GetCategories();
+	
+	newSectionInfos := make([]models.SectionInfo, 0, 5);
+
+	workoutInfoSection := fillWorkoutSection(workoutSection, heartRequest,categoryCdToName, categoriesAndWorkouts, workouts)
+
+	groupOptions := models.QueryOptions{}
+	groupOptions.Where = map[string]interface{} {
+		"Workout_Id" : heartRequest.WorkoutId,
+	}
+	groupOptions.IsEqual = true;
+	groups, _ := serv.groupRepository.GetGroupByParams(groupOptions);
+
+	fmt.Printf("Groups: %+v\n", groups)
+	groupInfoSections := fillGroupSection(groupSection, groups)
+
+	newSectionInfos = append(newSectionInfos, workoutInfoSection...)
+
+	newSectionInfos = append(newSectionInfos, groupInfoSections...)
+
+	heartResponse := models.HeartResponse{};
+	heartResponse.ActionType = heartRequest.ActionType
+	heartResponse.NewSections = newSections;
+	heartResponse.SectionInfos = newSectionInfos;
+	return heartResponse, nil;
+}
+func (serv * WorkoutService) GetWorkoutDetailsMetaInfo(heartRequest models.HeartRequest, cred models.Credentials) (models.HeartResponse, error) {
+	dbPage :=serv.pageRepository.GetPage("WORKOUT_DETAILS_PAGE");
+
+	groupSection := Util.FindSection("GROUP_SECTION", dbPage)
+	activitySection := Util.FindSection("ACTIVITY_SECTION", dbPage)
+	
+
+	newSections := make([]models.Section, 0, 5);
+
+	newSectionInfos := make([]models.SectionInfo, 0, 5);
+
+	
+
+	newActivitySection := Util.CloneSection(activitySection);
+	newActivitySection = Merge.MergeWorkoutDetailsActivityToSection(newActivitySection, heartRequest.ActionType);
+	newActivitySectionInfo := models.SectionInfo{}
+	newActivitySectionInfo.SectionMetaData = models.SectionMetaData{};
+	newActivitySectionInfo.Section = newActivitySection;
+	newSections = append(newSections, Util.CloneSection(newActivitySection))
+
+	newGroupSection := Util.CloneSection(groupSection)
+	newGroupSection = Merge.MergeGroupToSection(newGroupSection, heartRequest.ActionType);
+
+	newSections = append(newSections, newGroupSection);
+	newSectionInfos = append(newSectionInfos, newActivitySectionInfo)
+
 	heartResponse := models.HeartResponse{};
 	heartResponse.ActionType = heartRequest.ActionType
 	heartResponse.NewSections = newSections;
@@ -440,6 +520,7 @@ func fillWorkoutSection(workoutSection models.Section, heartRequest models.Heart
 		sectionInfo := models.SectionInfo{}
 		sectionMetaData := models.SectionMetaData{};
 		sectionMetaData.Id = strconv.FormatInt(workout.Workout_Id,10)
+		sectionMetaData.VersionNb = workout.Version_Nb
 		workType := workout.Workout_Type_Cd;
 		var catCode string;
 		var workoutName string;
@@ -479,6 +560,41 @@ func fillWorkoutSection(workoutSection models.Section, heartRequest models.Heart
 		sectionInfo.Section = newWorkoutSection 
 
 		newSectionInfos = append(newSectionInfos, sectionInfo)
+	}
+	return newSectionInfos
+}
+
+func fillGroupSection(groupSection models.Section, groups []models.Group) ([]models.SectionInfo) {
+	newSectionInfos := make([]models.SectionInfo, 0, len(groups))
+	for _, group := range groups {
+		newSection := Util.CloneSection(groupSection);
+		for f := range newSection.Fields {
+			field := &newSection.Fields[f];
+			if (field.FieldId == "SETS") {
+				field.Value = strconv.FormatInt(int64(group.Sets), 10)
+			} else if (field.FieldId == "REPETITIONS") {
+				field.Value = strconv.FormatInt(int64(group.Repetitions), 10)
+			} else if (field.FieldId == "WEIGHT") {
+				field.Value = strconv.FormatFloat(float64(group.Weight), 'f', 2, 32)
+			} else if (field.FieldId == "DURATION") {
+				field.Value = strconv.FormatFloat(float64(group.Duration), 'f', 2, 32)
+			} else if (field.FieldId == "VARIATION") {
+				field.Value = group.Variation
+			} else if (field.FieldId == "EDIT" || field.FieldId == "DELETE") {
+				field.IsDisabled = false;
+				field.IsHidden = false;
+			} else if (field.FieldId == "CLOSE" || field.FieldId == "SAVE") {
+				field.IsDisabled = true;
+				field.IsHidden = true;
+			}
+		}
+		newSectionInfo := models.SectionInfo{}
+		sectionMetaData := models.SectionMetaData{};
+		sectionMetaData.Id = strconv.FormatInt(group.Group_Id,10)
+		sectionMetaData.VersionNb = group.Version_Nb
+		newSectionInfo.SectionMetaData = sectionMetaData;
+		newSectionInfo.Section = newSection
+		newSectionInfos = append(newSectionInfos, newSectionInfo)
 	}
 	return newSectionInfos
 }

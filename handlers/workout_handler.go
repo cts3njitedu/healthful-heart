@@ -105,5 +105,11 @@ func (handler *WorkoutHandler) WorkoutActions(w http.ResponseWriter, r *http.Req
 	} else if heartRequest.ActionType == "VIEW_WORKOUTS" {
 		heartResponse, _ := handler.workoutService.GetWorkouts(heartRequest, creds)
 		json.NewEncoder(w).Encode(heartResponse)
+	} else if heartRequest.ActionType == "VIEW_WORKOUT_DETAILS_META_INFO" {
+		heartResponse, _ := handler.workoutService.GetWorkoutDetailsMetaInfo(heartRequest, creds)
+		json.NewEncoder(w).Encode(heartResponse)
+	} else if heartRequest.ActionType == "VIEW_WORKOUT_DETAILS" {
+		heartResponse, _ := handler.workoutService.GetWorkoutDetails(heartRequest, creds)
+		json.NewEncoder(w).Encode(heartResponse)
 	}
 }

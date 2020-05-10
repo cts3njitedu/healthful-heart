@@ -14,6 +14,7 @@ type HeartRequest struct {
 	Date string
 	LocationId string
 	WorkoutDayId string
+	WorkoutId string
 	SectionInfo `json:"sectionInfo"`
 }
 
@@ -41,4 +42,6 @@ const (
 	LOCATION_SELECTED = "LOCATION_SELECTED"
 	VIEW_WORKOUTS_HEADER = "VIEW_WORKOUTS_HEADER"
 	VIEW_WORKOUTS = "VIEW_WORKOUTS"
+	VIEW_WORKOUT_DETAILS_META_INFO = "VIEW_WORKOUT_DETAILS_META_INFO"
+	VIEW_WORKOUT_DETAILS = "VIEW_WORKOUT_DETAILS"
 )

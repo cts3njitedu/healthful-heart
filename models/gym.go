@@ -41,6 +41,7 @@ type Group struct {
 	Sets int `gorm:"column:SETS"`
 	Repetitions int `gorm:"column:REPETITIONS"`
 	Weight float32 `gorm:"column:WEIGHT"`
+	Duration float32 `gorm:"column:DURATION"`
 	Variation string `gorm:"column:VARIATION"`
 	Cre_Ts *string `gorm:"column:CRE_TS"`
 	Mod_Ts *string `gorm:"column:MOD_TS"`
