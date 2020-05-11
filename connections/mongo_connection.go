@@ -22,14 +22,14 @@ func NewMongoConnection(environmentUtil utils.IEnvironmentUtility) *MongoConnect
 }
 
 
-func (m *MongoConnection) GetConnection() (*mongo.Client, error) {
-	return m.makeConnection("MONGODB_URI")
+func (m *MongoConnection) GetConnection(ctx context.Context) (*mongo.Client, error) {
+	return m.makeConnection(ctx, "MONGODB_URI")
 }
 
-func (m *MongoConnection) makeConnection(connUrl string) (*mongo.Client,error) {
+func (m *MongoConnection) makeConnection(ctx context.Context, connUrl string) (*mongo.Client,error) {
 	fmt.Println("Creating Mongo Context...")
 	// d := time.Now().Add(10*time.Second)
-	ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel = context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 	url:= m.environmentUtil.GetEnvironmentString(connUrl);
 	clientOptions =options.Client().ApplyURI(url)
@@ -53,5 +53,5 @@ func (m *MongoConnection) makeConnection(connUrl string) (*mongo.Client,error) {
 }
 func (m *MongoConnection) GetFileConnection() (*mongo.Client, error) {
 
-	return m.makeConnection("MONGODB_FILE_URI");
+	return m.makeConnection(context.Background(), "MONGODB_FILE_URI");
 }

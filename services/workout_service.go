@@ -572,14 +572,19 @@ func fillGroupSection(groupSection models.Section, groups []models.Group) ([]mod
 			field := &newSection.Fields[f];
 			if (field.FieldId == "SETS") {
 				field.Value = strconv.FormatInt(int64(group.Sets), 10)
+				field.IsDisabled = true;
 			} else if (field.FieldId == "REPETITIONS") {
 				field.Value = strconv.FormatInt(int64(group.Repetitions), 10)
+				field.IsDisabled = true;
 			} else if (field.FieldId == "WEIGHT") {
 				field.Value = strconv.FormatFloat(float64(group.Weight), 'f', 2, 32)
+				field.IsDisabled = true;
 			} else if (field.FieldId == "DURATION") {
 				field.Value = strconv.FormatFloat(float64(group.Duration), 'f', 2, 32)
+				field.IsDisabled = true;
 			} else if (field.FieldId == "VARIATION") {
 				field.Value = group.Variation
+				field.IsDisabled = true;
 			} else if (field.FieldId == "EDIT" || field.FieldId == "DELETE") {
 				field.IsDisabled = false;
 				field.IsHidden = false;

@@ -5,10 +5,11 @@ import (
 	"database/sql"
 	"github.com/streadway/amqp"
 	"github.com/jinzhu/gorm"
+	"context"
 )
 
 type IMongoConnection interface {
-	GetConnection() (*mongo.Client, error)
+	GetConnection(ctx context.Context) (*mongo.Client, error)
 	GetFileConnection() (*mongo.Client, error)
 }
 

@@ -121,6 +121,9 @@ func MergeGroupToSection(section models.Section, actionType string) (models.Sect
 			case models.VIEW_WORKOUT_DETAILS:
 				field.IsDisabled = true;
 				field.IsHidden = true;
+			case models.VIEW_WORKOUT_DETAILS_META_INFO: 
+				field.IsDisabled = true;
+				field.IsHidden = true;
 			default:
 				field.IsDisabled = false;
 				field.IsHidden = false;
@@ -130,6 +133,9 @@ func MergeGroupToSection(section models.Section, actionType string) (models.Sect
 				case models.VIEW_WORKOUT_DETAILS: 
 					field.IsDisabled = false;
 					field.IsHidden = false;
+				case models.VIEW_WORKOUT_DETAILS_META_INFO: 
+					field.IsDisabled = true;
+					field.IsHidden = true;
 				default:
 					field.IsDisabled = true;
 					field.IsHidden = true;
@@ -186,7 +192,16 @@ func MergeWorkoutDetailsActivityToSection(section models.Section, actionType str
 				field.IsDisabled = true;
 				field.IsHidden = true;
 			}
-		} 
+		} else if (field.FieldId == "SAVE_GROUP" || field.FieldId == "CANCEL") {
+			switch actionType {
+			case models.VIEW_WORKOUT_DETAILS_META_INFO:
+				field.IsDisabled = true;
+				field.IsHidden = true;
+			default:
+				field.IsDisabled = true;
+				field.IsHidden = true; 
+			}
+		}
 	}
 	return section
 }

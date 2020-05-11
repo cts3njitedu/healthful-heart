@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 )
 
 
@@ -23,7 +24,10 @@ func NewPageRepository(connection connections.IMongoConnection, environmentUtil 
 
 func (pageRepo PageRepository) GetPage(pageType string) models.Page {
 	var result models.Page
-	client,err:=pageRepo.connection.GetConnection();
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	client,err:=pageRepo.connection.GetConnection(ctx);
 	
 	if err!=nil {
 		log.Println(err)
@@ -36,12 +40,12 @@ func (pageRepo PageRepository) GetPage(pageType string) models.Page {
 	collection:=db.Collection("Page")
 	filter:=bson.M{"pageId": pageType};
 	fmt.Printf("Retrieving %s\n",pageType);
-	err=collection.FindOne(context.TODO(), filter).Decode(&result)
+	err=collection.FindOne(ctx, filter).Decode(&result)
 	if err!= nil {
 		log.Println(err)
 		panic(err);
 	}
-	err = client.Disconnect(context.TODO())
+	err = client.Disconnect(ctx)
 	if err!= nil {
 		log.Println(err)
 		panic(err);
