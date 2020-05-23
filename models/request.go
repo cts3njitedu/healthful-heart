@@ -16,6 +16,32 @@ type HeartRequest struct {
 	WorkoutDayId string
 	WorkoutId string
 	SectionInfo `json:"sectionInfo"`
+	WorkoutDays [] WorkoutDayLocationRequest
+
+}
+
+type WorkoutDayLocationRequest struct {
+	WorkoutDayId string `json:"workoutDayId"`
+	Version_Nb string `json:"versionNb"`
+	IsDeleted bool `json:"isDeleted"`
+	Fields [] Field `json:"fields"`
+	Workouts [] WorkoutRequest `json:"workouts"`
+}
+
+type WorkoutRequest struct {
+	WorkoutId string `json:"workoutId"`
+	Version_Nb string `json:"versionNb"`
+	IsDeleted bool `json:"isDeleted"`
+	Fields []Field `json:"fields"`
+	Groups []GroupRequest `json:"groups"`
+
+}
+
+type GroupRequest struct {
+	GroupId string `json:"groupId"`
+	Version_Nb string `json:"versionNb"`
+	IsDeleted bool `json:"isDeleted"`
+	Fields []Field `json:"fields"`
 }
 
 type HeartSort struct {
@@ -44,4 +70,9 @@ const (
 	VIEW_WORKOUTS = "VIEW_WORKOUTS"
 	VIEW_WORKOUT_DETAILS_META_INFO = "VIEW_WORKOUT_DETAILS_META_INFO"
 	VIEW_WORKOUT_DETAILS = "VIEW_WORKOUT_DETAILS"
+	WORKOUTS_ACTION_ERRORS = "WORKOUTS_ACTION_ERRORS"
+	WORKOUTS_ACTION_SUCCESS = "WORKOUTS_ACTION_SUCCESS"
+	WORKOUTS_ACTION = "WORKOUTS_ACTION"
+	ACTION_WORKOUT = "ACTION_WORKOUT"
+	ACTION_WORKOUTDAY_LOCATION = "ACTION_WORKOUTDAY_LOCATION"
 )

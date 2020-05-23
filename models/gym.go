@@ -17,7 +17,7 @@ type WorkoutDay struct {
 	Workouts []Workout `gorm:"-" json:"-"`
 	Location Location `gorm:"-" json:"location"`
 	Version_Nb int64 `gorm:"column:VERSION_NB" json:"versionNb"`
-	Workout_File_Id* int64 `gorm:"column:WORKOUT_FILE_ID" json:"fileId"`
+	Workout_File_Id* int64 `gorm:"column:WORKOUT_FILE_ID;type:int(11)" json:"fileId"`
 
 }
 
@@ -59,3 +59,18 @@ type Location struct {
 	Location string `gorm:"column:LOCATION" json:"locationName"`
 }
 
+type ModEvent struct {
+	Event_Id int64
+	Event_Ts string
+}
+
+type ModEventDetail struct {
+	Event_Id int64
+	Event_Detail_Id int64
+	Gym_Id int64
+	Table_Name string
+	Table_Column string
+	Action string
+	Old_Value *string
+	New_Value *string
+}

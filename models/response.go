@@ -7,6 +7,7 @@ type HeartResponse struct {
 	Message string `json:"message"`
 	IsSuccessful bool `json:"isSuccessful"`
 	Data interface{} `json:"data"`
+	WorkoutDays [] WorkoutDayLocationRequest `json:"workoutDays"`
 }
 
 type SectionInfo struct {

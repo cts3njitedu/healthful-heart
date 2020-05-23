@@ -3,6 +3,7 @@ package services
 import (
 	"github.com/cts3njitedu/healthful-heart/repositories/mysqlrepo"
 	"github.com/cts3njitedu/healthful-heart/models"
+	"github.com/cts3njitedu/healthful-heart/mappers"
 	"fmt"
 	"time"
 	"github.com/cts3njitedu/healthful-heart/repositories/mongorepo"
@@ -11,7 +12,7 @@ import (
 	"strconv"
 	"strings"
 	"sort"
-
+	"github.com/cts3njitedu/healthful-heart/validators"
 )
 type WorkoutService struct {
 	locationService ILocationService
@@ -21,13 +22,14 @@ type WorkoutService struct {
 	locationRepository mysqlrepo.ILocationRepository
 	workoutTypeService IWorkoutTypeService
 	groupRepository mysqlrepo.IGroupRepository
+	mapper mappers.IMapper
 }
 
 
 func NewWorkoutService(locationService ILocationService, workoutDayRepository mysqlrepo.IWorkoutDayRepository, 
 	workoutRepository mysqlrepo.IWorkoutRepository, pageRepository mongorepo.IPageRepository, locationRepository mysqlrepo.ILocationRepository, 
-	workoutTypeService IWorkoutTypeService, groupRepository mysqlrepo.IGroupRepository) *WorkoutService {
-	return &WorkoutService{locationService, workoutDayRepository, workoutRepository, pageRepository, locationRepository, workoutTypeService, groupRepository}
+	workoutTypeService IWorkoutTypeService, groupRepository mysqlrepo.IGroupRepository, mapper mappers.IMapper) *WorkoutService {
+	return &WorkoutService{locationService, workoutDayRepository, workoutRepository, pageRepository, locationRepository, workoutTypeService, groupRepository, mapper}
 }
 
 func (serv * WorkoutService) GetWorkoutDays(queryParams models.QueryParams, cred models.Credentials) ([]models.WorkoutDay, error) {
@@ -353,7 +355,7 @@ func (serv * WorkoutService) GetWorkoutDetails(heartRequest models.HeartRequest,
 	return heartResponse, nil;
 }
 func (serv * WorkoutService) GetWorkoutDetailsMetaInfo(heartRequest models.HeartRequest, cred models.Credentials) (models.HeartResponse, error) {
-	dbPage :=serv.pageRepository.GetPage("WORKOUT_DETAILS_PAGE");
+	dbPage := serv.pageRepository.GetPage("WORKOUT_DETAILS_PAGE");
 
 	groupSection := Util.FindSection("GROUP_SECTION", dbPage)
 	activitySection := Util.FindSection("ACTIVITY_SECTION", dbPage)
@@ -383,6 +385,264 @@ func (serv * WorkoutService) GetWorkoutDetailsMetaInfo(heartRequest models.Heart
 	heartResponse.NewSections = newSections;
 	heartResponse.SectionInfos = newSectionInfos;
 	return heartResponse, nil
+}
+
+func (serv * WorkoutService) ActionWorkoutDay(heartRequest models.HeartRequest, cred models.Credentials) (models.HeartResponse, error) {
+	workoutActionsPage := serv.pageRepository.GetPage("WORKOUTS_ACTION_PAGE")
+	actionMap := map[string]map[string]models.Field{};
+	for s := range workoutActionsPage.Sections {
+		section := workoutActionsPage.Sections[s];
+		fieldMap := map[string]models.Field{}
+		for f := range section.Fields {
+			field := section.Fields[f];
+			fieldMap[field.Name] = field;
+		}
+		actionMap[section.Id] = fieldMap;
+	}
+	var isError bool = false;
+	categoriesAndWorkouts := serv.workoutTypeService.GetCategoriesAndWorkoutTypes();
+	_, categoryCdToName := serv.workoutTypeService.GetCategories();
+	for w := range heartRequest.WorkoutDays {
+		workoutDay := &heartRequest.WorkoutDays[w]
+		workoutDayFields, isFieldErrors := validateField(actionMap, "WORKOUTS_ACTION_PAGE.HEADER_SECTION", workoutDay.Fields)
+		workoutDay.Fields = workoutDayFields;
+		isError = isError || isFieldErrors
+		for wd := range workoutDay.Workouts {
+			workout := &workoutDay.Workouts[wd];
+			// fmt.Printf("WorkoutField: %+v\n", workout.Fields)
+			fillCategoryAndWorkoutType(categoriesAndWorkouts, categoryCdToName, workout.Fields)
+			workoutFields, isFieldErrors := validateField(actionMap, "WORKOUTS_ACTION_PAGE.WORKOUT_SECTION", workout.Fields);
+			workout.Fields = workoutFields;
+			isError = isError || isFieldErrors;
+			for g := range workout.Groups {
+				group := &workout.Groups[g];
+				groupFields, isFieldErrors := validateField(actionMap, "WORKOUTS_ACTION_PAGE.GROUP_SECTION", group.Fields);
+				group.Fields = groupFields
+				isError = isError || isFieldErrors
+			}
+		}
+	}
+	heartResponse := models.HeartResponse{};
+	if isError {
+		heartResponse.ActionType = models.WORKOUTS_ACTION_ERRORS
+		heartResponse.WorkoutDays = heartRequest.WorkoutDays
+	} else {
+		workoutDaysCurrent, deletedIds := serv.mapper.MapWorkoutDayRequestToWorkoutDay(heartRequest, cred.UserId)
+		workoutDaysOriginal := loadWorkoutDayOriginal(workoutDaysCurrent, serv)
+		eventDetails := make([]models.ModEventDetail,0,10);
+		findWorkoutDaysDifferences(workoutDaysCurrent, workoutDaysOriginal, &eventDetails)
+		findDeletedIds(workoutDaysOriginal, deletedIds, &eventDetails)
+		fmt.Printf("Changes: %+v\n", &eventDetails)
+		for w := range workoutDaysCurrent {
+			workoutDay := &workoutDaysCurrent[w]
+			err := serv.workoutDayRepository.SaveWorkoutDay(workoutDay)
+			if err != nil {
+				addError(heartRequest.ActionType)
+			}
+		}
+		heartResponse.ActionType = models.WORKOUTS_ACTION_SUCCESS
+		heartResponse.WorkoutDays = heartRequest.WorkoutDays
+	}
+	return heartResponse, nil;
+}
+func findDeletedIds(origins [] models.WorkoutDay, deletedIds map[string][]string, eventDetails *[]models.ModEventDetail) {
+	for k, ids := range deletedIds {
+		for _, v := range ids {
+			modDetail := models.ModEventDetail{}
+			gymId, _ := strconv.ParseInt(v,10, 64)
+			modDetail.Gym_Id = gymId
+			modDetail.Table_Name = k;
+			modDetail.Table_Column = k + "_Id"
+			modDetail.Action = "DELETE"
+			*eventDetails = append(*eventDetails, modDetail)
+		}
+	}
+	
+}
+func findWorkoutDaysDifferences(currs [] models.WorkoutDay, origins []models.WorkoutDay, eventDetails *[]models.ModEventDetail) {
+	wMap := make(map[int64]models.WorkoutDay)
+	for _, wd := range origins {
+		wMap[wd.Workout_Day_Id] = wd;
+	}
+	for _, wd := range currs {
+		if val, ok := wMap[wd.Workout_Day_Id]; ok {
+			if (wd.Workout_Date != val.Workout_Date) {
+				modDetail := models.ModEventDetail{};
+				modDetail.Gym_Id = wd.Workout_Day_Id
+				modDetail.Table_Name = "WorkoutDay"
+				modDetail.Table_Column = "Workout_Date"
+				modDetail.Action = "MODIFY"
+				oldValue := &val.Workout_Date
+				modDetail.Old_Value = oldValue
+				newValue := &wd.Workout_Date
+				modDetail.New_Value = newValue
+				*eventDetails = append(*eventDetails, modDetail)
+			} else if (wd.Location_Id != val.Location_Id) {
+				modDetail := models.ModEventDetail{};
+				modDetail.Gym_Id = wd.Workout_Day_Id
+				modDetail.Table_Name = "WorkoutDay"
+				modDetail.Table_Column = "Location_Id"
+				modDetail.Action = "MODIFY"
+				oldValue := strconv.FormatInt(int64(val.Location_Id), 10)
+				modDetail.Old_Value = &oldValue
+				newValue := strconv.FormatInt(int64(wd.Location_Id), 10)
+				modDetail.New_Value = &newValue
+				*eventDetails = append(*eventDetails, modDetail)
+			}
+			findWorkoutsDifferences(wd.Workouts, val.Workouts, eventDetails)
+		}
+	}
+
+}
+
+func findWorkoutsDifferences(currs [] models.Workout, origins []models.Workout, eventDetails *[]models.ModEventDetail) {
+	wMap := make(map[int64]models.Workout)
+	for _, wk := range origins {
+		wMap[wk.Workout_Id] = wk;
+	}
+
+	for _, wk := range currs {
+		if val, ok := wMap[wk.Workout_Id]; ok {
+			if (wk.Workout_Type_Cd != val.Workout_Type_Cd) {
+				modDetail := models.ModEventDetail{};
+				modDetail.Gym_Id = wk.Workout_Id
+				modDetail.Table_Name = "Workout"
+				modDetail.Table_Column = "Workout_Type_Cd"
+				modDetail.Action = "MODIFY"
+				oldValue := &val.Workout_Type_Cd
+				modDetail.Old_Value = oldValue
+				newValue := &wk.Workout_Type_Cd
+				modDetail.New_Value = newValue
+				*eventDetails = append(*eventDetails, modDetail)
+			}
+			findGroupDifferences(wk.Groups, val.Groups, eventDetails)
+		}
+	}
+}
+
+func findGroupDifferences(currs [] models.Group, origins []models.Group, eventDetails *[]models.ModEventDetail) {
+	gMap := make(map[int64]models.Group)
+	for _, g := range origins {
+		gMap[g.Group_Id] = g;
+	}
+	for _, g := range currs {
+		if val, ok := gMap[g.Group_Id]; ok {
+			if (g.Sets != val.Sets) {
+				modDetail := models.ModEventDetail{};
+				modDetail.Gym_Id = g.Group_Id
+				modDetail.Table_Name = "Group"
+				modDetail.Table_Column = "Sets"
+				modDetail.Action = "MODIFY"
+				oldValue := strconv.FormatInt(int64(val.Sets), 10)
+				modDetail.Old_Value = &oldValue
+				newValue := strconv.FormatInt(int64(g.Sets), 10)
+				modDetail.New_Value = &newValue
+				*eventDetails = append(*eventDetails, modDetail)
+			} else if (g.Repetitions != val.Repetitions) {
+				modDetail := models.ModEventDetail{};
+				modDetail.Gym_Id = g.Group_Id
+				modDetail.Table_Name = "Group"
+				modDetail.Table_Column = "Repetitions"
+				modDetail.Action = "MODIFY"
+				oldValue := strconv.FormatInt(int64(val.Repetitions), 10)
+				modDetail.Old_Value = &oldValue
+				newValue := strconv.FormatInt(int64(g.Repetitions), 10)
+				modDetail.New_Value = &newValue
+				*eventDetails = append(*eventDetails, modDetail)
+			} else if (g.Weight != val.Weight) {
+				modDetail := models.ModEventDetail{};
+				modDetail.Gym_Id = g.Group_Id
+				modDetail.Table_Name = "Group"
+				modDetail.Table_Column = "Weight"
+				modDetail.Action = "MODIFY"
+				oldValue := strconv.FormatFloat(float64(val.Weight), 'f', -1, 32)
+				modDetail.Old_Value = &oldValue
+				newValue := strconv.FormatFloat(float64(g.Weight), 'f', -1, 32)
+				modDetail.New_Value = &newValue
+				*eventDetails = append(*eventDetails, modDetail)
+			} else if (g.Duration != val.Duration) {
+				modDetail := models.ModEventDetail{};
+				modDetail.Gym_Id = g.Group_Id
+				modDetail.Table_Name = "Group"
+				modDetail.Table_Column = "Duration"
+				modDetail.Action = "MODIFY"
+				oldValue := strconv.FormatFloat(float64(val.Duration), 'f', -1, 32)
+				modDetail.Old_Value = &oldValue
+				newValue := strconv.FormatFloat(float64(g.Duration), 'f', -1, 32)
+				modDetail.New_Value = &newValue
+				*eventDetails = append(*eventDetails, modDetail)
+			} else if (g.Variation != val.Variation) {
+				modDetail := models.ModEventDetail{};
+				modDetail.Gym_Id = g.Group_Id
+				modDetail.Table_Name = "Group"
+				modDetail.Table_Column = "Variation"
+				modDetail.Action = "MODIFY"
+				oldValue := &val.Variation
+				modDetail.Old_Value = oldValue
+				newValue := &g.Variation
+				modDetail.New_Value = newValue
+				*eventDetails = append(*eventDetails, modDetail)
+			}
+		}
+	}
+}
+func loadWorkoutDayOriginal(workoutDaysCurrent []models.WorkoutDay, serv*WorkoutService) []models.WorkoutDay {
+	workoutDaysOriginal := make([]models.WorkoutDay, 0, len(workoutDaysCurrent)+5)
+	for _, workoutDay := range workoutDaysCurrent {
+		workoutDayOptions := models.QueryOptions{}
+		workoutDayOptions.Where = map[string]interface{} {
+			"Workout_Day_Id" : workoutDay.Workout_Day_Id,
+		}
+		workoutDayOptions.IsEqual = true
+		fmt.Printf("Workout Days: %+v\n", workoutDayOptions)
+		workoutDays, _ := serv.workoutDayRepository.GetWorkoutDaysByParams(workoutDayOptions)
+		
+		workoutDayOriginal := models.WorkoutDay{}
+		if (len(workoutDays) == 1) {
+			workoutDayOriginal = workoutDays[0];
+			workoutOptions := models.QueryOptions{}
+			workoutOptions.Where = map[string]interface{} {
+				"Workout_Day_Id" : workoutDayOriginal.Workout_Day_Id,
+			}
+			workoutOptions.IsEqual = true;
+			workouts, _ := serv.workoutRepository.GetWorkoutByParams(workoutOptions)
+			for wk := range workouts {
+				wkOut := &workouts[wk]
+				groupOptions := models.QueryOptions{};
+				groupOptions.Where = map[string]interface{} {
+					"Workout_Id" : wkOut.Workout_Id,
+				}
+				groupOptions.IsEqual = true;
+				groups, _ := serv.groupRepository.GetGroupByParams(groupOptions)
+				wkOut.Groups = groups;
+			}
+			workoutDayOriginal.Workouts = workouts
+			workoutDaysOriginal = append(workoutDaysOriginal, workoutDayOriginal)
+		}
+	}
+	return workoutDaysOriginal
+}
+func addError(actionType string) (models.HeartResponse, error) {
+	heartResponse := models.HeartResponse{}
+	heartResponse.ActionType = models.WORKOUTS_ACTION_ERRORS
+	heartResponse.Message = actionType + ": Request Invalid"
+	return heartResponse, nil
+} 
+
+func validateField(actionMap map[string]map[string]models.Field, sectionId string, fields []models.Field) ([]models.Field, bool) {
+	newFields := make([]models.Field, 0, len(fields))
+	fieldValidator := validators.FieldValidator{}
+	var isError bool = false;
+	for f := range fields {
+		field := fields[f];
+		newField := Util.CloneField(actionMap[sectionId][field.Name]);
+		newField.Value = field.Value;
+		newField.Items = field.Items
+		fieldValidator.FieldValidators(&newField);
+		isError = isError || len(newField.Errors) > 0;
+		newFields = append(newFields, newField);
+	}
+	return newFields, isError
 }
 
 func fillLocationHeaderSection(locationHeaderSection models.Section, locationSection models.Section, heartRequest models.HeartRequest) (models.SectionInfo, models.Section) {
@@ -564,6 +824,43 @@ func fillWorkoutSection(workoutSection models.Section, heartRequest models.Heart
 	return newSectionInfos
 }
 
+func fillCategoryAndWorkoutType(catWorkouts map[string]map[string]string, categories map[string]string, fields []models.Field) {
+	var catCode string;
+	var workoutType string;
+	for f := range fields {
+		field := &fields[f];
+		if (field.Name == "categoryName") {
+			catCode = field.Value;
+		} else if field.Name == "workoutTypeDesc" {
+			workoutType = field.Value;
+		}
+	}
+	fmt.Printf("Category: %s, Workout %s\n", catCode, workoutType)
+	for f := range fields {
+		field := &fields[f];
+		if (field.Name == "categoryName") {
+			catItem := models.Item{}
+			catItem.Id = catCode;
+			catItem.Item = categories[catCode];
+			catItems := make([]models.Item, 0, 1);
+			catItems = append(catItems, catItem)
+			field.Items = catItems
+		} else if field.Name == "workoutTypeDesc" {
+			var workoutTypeDesc string
+			workoutTypeMap := catWorkouts[catCode];
+			if workoutTypeMap != nil {
+				workoutTypeDesc = workoutTypeMap[workoutType]
+			}
+			workItem := models.Item{}
+			workItem.Id = workoutType
+			workItem.Item = workoutTypeDesc;
+			workItems := make([]models.Item, 0, 1)
+			workItems = append(workItems, workItem)
+			field.Items = workItems
+		}
+	}
+}
+
 func fillGroupSection(groupSection models.Section, groups []models.Group) ([]models.SectionInfo) {
 	newSectionInfos := make([]models.SectionInfo, 0, len(groups))
 	for _, group := range groups {
@@ -577,10 +874,10 @@ func fillGroupSection(groupSection models.Section, groups []models.Group) ([]mod
 				field.Value = strconv.FormatInt(int64(group.Repetitions), 10)
 				field.IsDisabled = true;
 			} else if (field.FieldId == "WEIGHT") {
-				field.Value = strconv.FormatFloat(float64(group.Weight), 'f', 2, 32)
+				field.Value = strconv.FormatFloat(float64(group.Weight), 'f', -1, 32)
 				field.IsDisabled = true;
 			} else if (field.FieldId == "DURATION") {
-				field.Value = strconv.FormatFloat(float64(group.Duration), 'f', 2, 32)
+				field.Value = strconv.FormatFloat(float64(group.Duration), 'f', -1, 32)
 				field.IsDisabled = true;
 			} else if (field.FieldId == "VARIATION") {
 				field.Value = group.Variation

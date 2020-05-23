@@ -76,10 +76,10 @@ func (handler *WorkoutHandler) WorkoutDaysActions(w http.ResponseWriter, r *http
 	} else if heartRequest.ActionType == "ADD_WORKOUTDATE_LOCATION" {
 		heartResponse, _ := handler.workoutService.AddWorkoutDateLocation(heartRequest, creds)
 		json.NewEncoder(w).Encode(heartResponse)
+	} else if heartRequest.ActionType == "WORKOUTS_ACTION" {
+		heartResponse, _ := handler.workoutService.ActionWorkoutDay(heartRequest, creds)
+		json.NewEncoder(w).Encode(heartResponse)
 	}
-	
-
-	
 
 }
 

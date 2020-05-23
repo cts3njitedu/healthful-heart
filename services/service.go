@@ -66,4 +66,5 @@ type IWorkoutService interface {
 	GetWorkouts(heartRequest models.HeartRequest, cred models.Credentials) (models.HeartResponse, error)
 	GetWorkoutDetails(heartRequest models.HeartRequest, cred models.Credentials) (models.HeartResponse, error)
 	GetWorkoutDetailsMetaInfo(heartRequest models.HeartRequest, cred models.Credentials) (models.HeartResponse, error)
+	ActionWorkoutDay(heartRequest models.HeartRequest, cred models.Credentials) (models.HeartResponse, error)
 }

@@ -129,9 +129,13 @@ func (repo * WorkoutDayRepository) SaveWorkoutDay(workDay *models.WorkoutDay) er
 			}
 		}()
 		var workDayQuery *models.WorkoutDay = &models.WorkoutDay{}
-		tx.Table("WorkoutDay").Where(SQL_QUERY_WORKOUT_DAY, workDay.User_Id, workDay.Location_Id, workDay.Workout_Date).
+		if workDay.Workout_Day_Id == 0 {
+			tx.Table("WorkoutDay").Where(SQL_QUERY_WORKOUT_DAY, workDay.User_Id, workDay.Location_Id, workDay.Workout_Date).
 			First(&workDayQuery)
-
+		} else {
+			workDayQuery = workDay;
+		}
+	
 		if workDayQuery.Workout_Day_Id != 0 {
 			workDay.Workout_Day_Id = workDayQuery.Workout_Day_Id;
 			ret := tx.Table("WorkoutDay").

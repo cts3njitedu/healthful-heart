@@ -52,9 +52,12 @@ func workoutDaysRoutes(r *mux.Router, prefix string, chain alice.Chain) {
 	sub := mux.NewRouter()
 	validateTokenHandler := factories.GetTokenHandler().ValidateToken;
 	preChain := alice.New(handlers.Logging, validateTokenHandler);
+	sub.HandleFunc(prefix ,factories.GetWorkoutHandler().WorkoutDaysActions).Methods("GET", "POST");
+	sub.HandleFunc(prefix + "/", factories.GetWorkoutHandler().WorkoutActions).Methods("GET", "POST")
 	sub.HandleFunc(prefix + "/{date}" ,factories.GetWorkoutHandler().WorkoutDaysActions).Methods("GET", "POST");
 	sub.HandleFunc(prefix + "/{date}/locations", factories.GetWorkoutHandler().WorkoutDaysActions).Methods("POST");
 	sub.HandleFunc(prefix + "/{date}/locations/{locationId}", factories.GetWorkoutHandler().WorkoutActions).Methods("GET", "POST")
+	r.Handle(prefix, preChain.Then(sub))
 	r.Handle(prefix + "/{path:.*}", preChain.Then(sub));
 }
 

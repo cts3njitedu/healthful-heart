@@ -150,7 +150,7 @@ func MergeWorkoutDetailsActivityToSection(section models.Section, actionType str
 		if field.FieldId == "ADD_GROUP" {
 			switch actionType {
 			case models.VIEW_WORKOUT_DETAILS_META_INFO:
-				field.IsDisabled = false;
+				field.IsDisabled = true;
 				field.IsHidden = false;
 			default:
 				field.IsDisabled = true;

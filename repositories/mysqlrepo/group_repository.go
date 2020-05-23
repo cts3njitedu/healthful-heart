@@ -67,17 +67,25 @@ func (repo *GroupRepository) SaveGroup(group *models.Group, tx *gorm.DB) error {
 		  tx.Rollback()
 		}
 	}()
-	t := time.Now()
-	creTs := t.Format("2006-01-02 15:04:05")
-	group.Cre_Ts = &creTs;
-	group.Version_Nb = 1;
-	err := tx.Table("Group").Create(&group).Error;
-	if err != nil {
-		fmt.Printf("Group error: %+v\n", err)
-		tx.Rollback()
-		return tx.Error;
+	if group.Group_Id != 0 {
+		ret := tx.Table("Group").
+			Where("group_id = ? AND version_nb = ?",group.Group_Id, group.Version_Nb).
+			Updates(map[string]interface{}{"mod_ts": time.Now(), "version_nb": group.Version_Nb + 1});
+		fmt.Printf("Rows affected: %d, Group Id: %d\n",ret.RowsAffected,group.Group_Id)
+	} else {
+		t := time.Now()
+		creTs := t.Format("2006-01-02 15:04:05")
+		group.Cre_Ts = &creTs;
+		group.Version_Nb = 1;
+		err := tx.Table("Group").Create(&group).Error;
+		if err != nil {
+			fmt.Printf("Group error: %+v\n", err)
+			tx.Rollback()
+			return tx.Error;
+		}
+	
+		fmt.Printf("Created group id: %d\n", group.Group_Id)
 	}
-
-	fmt.Printf("Created group id: %d\n", group.Group_Id)
+	
 	return nil
 }
