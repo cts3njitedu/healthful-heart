@@ -68,3 +68,21 @@ type IWorkoutService interface {
 	GetWorkoutDetailsMetaInfo(heartRequest models.HeartRequest, cred models.Credentials) (models.HeartResponse, error)
 	ActionWorkoutDay(heartRequest models.HeartRequest, cred models.Credentials) (models.HeartResponse, error)
 }
+
+type IGymRepositoryService interface {
+	LoadWorkoutDayOriginal(workoutDaysCurrent []models.WorkoutDay) []models.WorkoutDay
+	GetWorkoutDaysByParams(options models.QueryOptions) ([]models.WorkoutDay, error)
+	SaveWorkoutDayLocation(workDay *models.WorkoutDay) (*models.WorkoutDay, error)
+	UpdateAllWorkoutDay(workDays []models.WorkoutDay, ids map[string][]string) error
+	GetWorkoutByParams(queryOptions models.QueryOptions) ([]models.Workout, error)
+	GetGroupByParams(queryOptions models.QueryOptions) ([]models.Group, error)
+	GetLocationsQueryParams(queryOptions models.QueryOptions) ([]models.Location, error)
+}
+
+type IEventService interface {
+	FindWorkoutDaysAdded(currs [] models.WorkoutDay, origins []models.WorkoutDay, eventDetails *[]models.ModEventDetail)
+	FindDeletedIds(origins [] models.WorkoutDay, deletedIds map[string][]string, eventDetails *[]models.ModEventDetail)
+	FindWorkoutDaysDifferences(currs [] models.WorkoutDay, origins []models.WorkoutDay, eventDetails *[]models.ModEventDetail) []models.WorkoutDay
+	FindWorkoutsDifferences(currs [] models.Workout, origins []models.Workout, eventDetails *[]models.ModEventDetail) []models.Workout
+	FindGroupDifferences(currs [] models.Group, origins []models.Group, eventDetails *[]models.ModEventDetail) []models.Group
+}

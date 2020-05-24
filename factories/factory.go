@@ -53,6 +53,8 @@ var (
 	locationRepository *mysqlrepo.LocationRepository
 	locationService *services.LocationService
 	workoutService *services.WorkoutService
+	gymRepoService *services.GymRepositoryService
+	eventService *services.EventService
 )
 
 func init() {
@@ -85,9 +87,11 @@ func init() {
 	enr:= []enrichers.IEnricher {singupEnricher}
 	enricherExecutor = enrichers.NewEnrichExecutor(enr)
 	locationService = services.NewLocationService(locationRepository)
+	gymRepoService = services.NewGymRepositoryService(workoutDayRepository, workRepository, groupRepository, locationRepository)
 	groupParserService = services.NewGroupParserService()
 	workoutTypeService = services.NewWorkoutTypeService(workoutTypeRepository,categoryRepository)
-	workoutService = services.NewWorkoutService(locationService, workoutDayRepository, workRepository, pageRepository, locationRepository, workoutTypeService, groupRepository, mapperUtil)
+	eventService = services.NewEventService();
+	workoutService = services.NewWorkoutService(locationService, pageRepository, workoutTypeService, mapperUtil, gymRepoService, eventService)
 	fileProcessorService = services.NewFileProcessorService(workoutRepository, fileRepository, workoutTypeService, groupParserService,workoutDayRepository)
 	rabbitService = services.NewRabbitService(rabbitConnection, environmentUtiliy, fileProcessorService)
 	authenticationService = services.NewAuthenticationService(pageRepository, restructureService, enricherExecutor)

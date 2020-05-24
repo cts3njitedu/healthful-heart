@@ -158,19 +158,19 @@ func (repo *WorkoutDayRepository) UpdateAllWorkoutDay(workDays []models.WorkoutD
 		ret := repo.groupRepo.DeleteGroups(ids, tx)
 		if !ret {
 			tx.Rollback();
-			return errors.New("Unable to Delete Group")
+			return errors.New("Unable to Delete Group\n")
 		}
 
 		ret = repo.workoutRepo.DeleteWorkouts(ids, tx)
 		if !ret {
 			tx.Rollback();
-			return errors.New("Unable to Delete Workouts")
+			return errors.New("Unable to Delete Workouts\n")
 		}
 
 		ret = repo.DeleteWorkoutDays(ids, tx);
 		if !ret {
 			tx.Rollback();
-			return errors.New("Unable to Delete Workout Days")
+			return errors.New("Unable to Delete Workout Days\n")
 		}
 
 
@@ -200,8 +200,8 @@ func (repo * WorkoutDayRepository) SaveWorkoutDay(workDay *models.WorkoutDay, tx
 		fmt.Printf("Rows affected: %d, Workout Day Id: %d\n",ret.RowsAffected,workDay.Workout_Day_Id)
 		if (ret.RowsAffected == 0) {
 			tx.Rollback()
-			fmt.Printf("Unable to Find %+v", workDay.Workout_Day_Id)
-			return errors.New("Unable to Update")
+			fmt.Printf("Unable to Find %+v\n", workDay.Workout_Day_Id)
+			return errors.New(fmt.Sprintf("Unable to Find %+v", workDay.Workout_Day_Id))
 		}
 	
 	} else {
