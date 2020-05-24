@@ -20,6 +20,22 @@ type WorkoutDayRepository struct {
 func NewWorkoutDayRepository(connection connections.IMysqlConnection, workoutRepo IWorkoutRepository) * WorkoutDayRepository {
 	return &WorkoutDayRepository{connection, workoutRepo}
 }
+
+func (repo * WorkoutDayRepository) DeleteWorkoutDays(ids map[string][]string) bool {
+	db, err := repo.connection.GetGormConnection();
+	defer db.Close()
+	if err != nil {
+		panic(err.Error())
+	}
+	ret := db.Table("WorkoutDay").Where("Workout_Day_Id IN (?)", ids["WorkoutDay"]).Delete(models.Group{})
+	if ret.Error != nil {
+		fmt.Printf("Unable to delete Workouts %+v\n", ret.Error)
+		return false;
+	} else {
+		fmt.Printf("Workout Days Deleted: %+v\n", ret.RowsAffected)
+	}
+	return true;
+}
 func (repo *WorkoutDayRepository) GetWorkoutDaysSpecifyColumns(queryOptions models.QueryOptions) ([]models.WorkoutDay, error) {
 	var workoutDays []models.WorkoutDay
 	db, err := repo.connection.GetGormConnection();

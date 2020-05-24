@@ -282,6 +282,7 @@ func (serv * WorkoutService) GetWorkoutPageHeader(heartRequest models.HeartReque
 		newHeaderMetaData := models.SectionMetaData{};
 		workoutId := strconv.FormatInt(workoutDayHeader.Workout_Day_Id,10)
 		newHeaderMetaData.Id = workoutId;
+		newHeaderMetaData.VersionNb = workoutDayHeader.Version_Nb
 		newHeaderInfo.SectionMetaData = newHeaderMetaData
 		newHeaderInfo.Section = newHeaderSection;
 		newSectionInfos = append(newSectionInfos, newHeaderInfo)
@@ -440,6 +441,21 @@ func (serv * WorkoutService) ActionWorkoutDay(heartRequest models.HeartRequest, 
 				addError(heartRequest.ActionType)
 			}
 		}
+		err := serv.groupRepository.DeleteGroups(deletedIds)
+		if !err {
+			fmt.Printf("Failed to delete Group")
+		} else {
+			err = serv.workoutRepository.DeleteWorkouts(deletedIds)
+			if !err {
+				fmt.Printf("Failed to delete Workouts")
+			} else {
+				err = serv.workoutDayRepository.DeleteWorkoutDays(deletedIds)
+				if !err {
+					fmt.Printf("Failed to delete Workout Days")
+				}
+			}
+		}
+		
 		fmt.Printf("Workout Current: %+v\n", workoutDaysModified)
 		findWorkoutDaysAdded(workoutDaysModified, workoutDaysOriginal, &eventDetails)
 		heartResponse.ActionType = models.WORKOUTS_ACTION_SUCCESS
@@ -547,7 +563,6 @@ func findDeletedIds(origins [] models.WorkoutDay, deletedIds map[string][]string
 			gymId, _ := strconv.ParseInt(v,10, 64)
 			modDetail.Gym_Id = gymId
 			modDetail.Table_Name = k;
-			modDetail.Table_Column = k + "_Id"
 			modDetail.Action = "DELETE"
 			*eventDetails = append(*eventDetails, modDetail)
 		}

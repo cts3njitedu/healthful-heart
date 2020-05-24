@@ -36,16 +36,19 @@ type IWorkoutDayRepository interface {
 	GetWorkoutDaysByParams(queryOptions models.QueryOptions) ([]models.WorkoutDay, error)
 	GetWorkoutDaysSpecifyColumns(queryOptions models.QueryOptions) ([]models.WorkoutDay, error)
 	SaveWorkoutDayLocation(workDay *models.WorkoutDay) (*models.WorkoutDay, error)
+	DeleteWorkoutDays(ids map[string][]string) bool
 }
 
 type IWorkoutRepository interface {
 	SaveWorkout(workDay *models.Workout, tx *gorm.DB) error
 	GetWorkoutByParams(queryOptions models.QueryOptions) ([]models.Workout, error)
+	DeleteWorkouts(ids map[string][]string) bool
 }
 
 type IGroupRepository interface {
 	SaveGroup(group *models.Group, tx *gorm.DB) error
 	GetGroupByParams(queryOptions models.QueryOptions) ([]models.Group, error)
+	DeleteGroups(ids map[string][]string) bool
 }
 
 type ILocationRepository interface {

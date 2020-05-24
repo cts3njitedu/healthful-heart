@@ -16,6 +16,23 @@ type GroupRepository struct {
 func NewGroupRepository(connection connections.IMysqlConnection) * GroupRepository {
 	return &GroupRepository{connection}
 }
+
+func (repo *GroupRepository) DeleteGroups(ids map[string][]string) bool {
+	db, err := repo.connection.GetGormConnection();
+	defer db.Close()
+	if err != nil {
+		panic(err.Error())
+	}
+	ret := db.Table("Group").Where("Group_Id IN (?)", ids["Group"]).Or("Workout_Id IN (?)", ids["Workout"]).Or("Workout_Day_Id IN (?)", ids["WorkoutDay"]).Delete(models.Group{})
+	if ret.Error != nil {
+		fmt.Printf("Unable to delete Group: %+v\n", ret.Error)
+		return false;
+	} else {
+		fmt.Printf("Groups Deleted: %+v\n", ret.RowsAffected)
+	}
+	return true;
+}
+
 func (repo *GroupRepository) GetGroupByParams(queryOptions models.QueryOptions) ([]models.Group, error) {
 	var groups []models.Group
 	db, err := repo.connection.GetGormConnection();

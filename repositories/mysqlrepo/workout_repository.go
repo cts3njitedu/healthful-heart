@@ -20,6 +20,21 @@ func NewWorkoutRepository(connection connections.IMysqlConnection, groupRepo IGr
 	return &WorkoutRepository{connection, groupRepo}
 }
 
+func (repo * WorkoutRepository) DeleteWorkouts(ids map[string][]string) bool {
+	db, err := repo.connection.GetGormConnection();
+	defer db.Close()
+	if err != nil {
+		panic(err.Error())
+	}
+	ret := db.Table("Workout").Where("Workout_Id IN (?)", ids["Workout"]).Or("Workout_Day_Id IN (?)", ids["WorkoutDay"]).Delete(models.Group{})
+	if ret.Error != nil {
+		fmt.Printf("Unable to delete Workouts %+v\n", ret.Error)
+		return false;
+	} else {
+		fmt.Printf("Workouts Deleted: %+v\n", ret.RowsAffected)
+	}
+	return true;
+}
 func (repo *WorkoutRepository) GetWorkoutByParams(queryOptions models.QueryOptions) ([]models.Workout, error) {
 	var workouts []models.Workout
 	db, err := repo.connection.GetGormConnection();
