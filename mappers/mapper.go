@@ -73,6 +73,8 @@ func (mapper *Mapper) MapWorkoutDayRequestToWorkoutDay(heartRequest models.Heart
 	workoutDays := make([]models.WorkoutDay, 0, len(heartRequest.WorkoutDays))
 	deletedMap := make(map[string][]string)
 	user, _ := strconv.ParseInt(userId, 10, 64)
+	t := time.Now()
+	modTs := t.Format("2006-01-02 15:04:05")
 	for _, wd := range heartRequest.WorkoutDays {
 		workoutDay := models.WorkoutDay{}
 		if wd.IsDeleted {
@@ -102,6 +104,7 @@ func (mapper *Mapper) MapWorkoutDayRequestToWorkoutDay(heartRequest models.Heart
 		workouts := make([]models.Workout, 0, len(wd.Workouts));
 		for _, wk := range wd.Workouts {
 			if wk.IsDeleted {
+				workoutDay.Mod_Ts = &modTs
 				deleteWorkouts := deletedMap["Workout"];
 				deleteWorkouts = append(deleteWorkouts, wk.WorkoutId)
 				deletedMap["Workout"] = deleteWorkouts
@@ -126,6 +129,8 @@ func (mapper *Mapper) MapWorkoutDayRequestToWorkoutDay(heartRequest models.Heart
 			fmt.Printf("Groups Mapper: %+v\n", wk.Groups)
 			for _, g := range wk.Groups {
 				if g.IsDeleted {
+					workout.Mod_Ts = &modTs
+					workoutDay.Mod_Ts = &modTs
 					deleteGroups := deletedMap["Group"];
 					deleteGroups = append(deleteGroups, g.GroupId)
 					deletedMap["Group"] = deleteGroups

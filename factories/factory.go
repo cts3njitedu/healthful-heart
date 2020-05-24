@@ -77,7 +77,7 @@ func init() {
 	workoutTypeRepository = mysqlrepo.NewWorkoutTypeRepository(mysqlConnection)
 	groupRepository = mysqlrepo.NewGroupRepository(mysqlConnection)
 	workRepository = mysqlrepo.NewWorkoutRepository(mysqlConnection, groupRepository)
-	workoutDayRepository = mysqlrepo.NewWorkoutDayRepository(mysqlConnection, workRepository)
+	workoutDayRepository = mysqlrepo.NewWorkoutDayRepository(mysqlConnection, workRepository, groupRepository)
 	hasher = security.NewPasswordHasher()
 	jwtToken = security.NewJwtToken(environmentUtiliy, hasher, tokenRepository, userRepository, mapperUtil)
 	credentialEnricher = enrichers.NewCredentialEnricher(hasher)

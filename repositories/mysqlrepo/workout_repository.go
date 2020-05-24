@@ -7,6 +7,7 @@ import (
 	"time"
 	"fmt"
 	Util "github.com/cts3njitedu/healthful-heart/utils"
+	"errors"
 )
 
 
@@ -20,13 +21,8 @@ func NewWorkoutRepository(connection connections.IMysqlConnection, groupRepo IGr
 	return &WorkoutRepository{connection, groupRepo}
 }
 
-func (repo * WorkoutRepository) DeleteWorkouts(ids map[string][]string) bool {
-	db, err := repo.connection.GetGormConnection();
-	defer db.Close()
-	if err != nil {
-		panic(err.Error())
-	}
-	ret := db.Table("Workout").Where("Workout_Id IN (?)", ids["Workout"]).Or("Workout_Day_Id IN (?)", ids["WorkoutDay"]).Delete(models.Group{})
+func (repo * WorkoutRepository) DeleteWorkouts(ids map[string][]string, tx *gorm.DB) bool {
+	ret := tx.Table("Workout").Where("Workout_Id IN (?)", ids["Workout"]).Or("Workout_Day_Id IN (?)", ids["WorkoutDay"]).Delete(models.Group{})
 	if ret.Error != nil {
 		fmt.Printf("Unable to delete Workouts %+v\n", ret.Error)
 		return false;
@@ -97,17 +93,23 @@ func (repo * WorkoutRepository) SaveWorkout(workDay *models.Workout, tx *gorm.DB
 		ret := tx.Table("Workout").
 			Where("workout_id = ? AND version_nb = ?",workDay.Workout_Id, workoutQuery.Version_Nb).
 			Updates(map[string]interface{}{"mod_ts": time.Now(), "version_nb": workoutQuery.Version_Nb + 1, "workout_type_cd": workoutQuery.Workout_Type_Cd});
-		fmt.Printf("Rows affected: %d, Workout Id: %d\n",ret.RowsAffected,workDay.Workout_Id)	
+		fmt.Printf("Rows affected: %d, Workout Id: %d\n",ret.RowsAffected,workDay.Workout_Id)
+		if (ret.RowsAffected == 0) {
+			tx.Rollback()
+			fmt.Printf("Unable to Find %+v", workDay.Workout_Id)
+			return errors.New("Unable to Update")
+		}	
 	} else {
 		t := time.Now()
 		creTs := t.Format("2006-01-02 15:04:05")
 		workDay.Cre_Ts = &creTs;
+		workDay.Mod_Ts = nil;
 		workDay.Version_Nb = 1;
 		err := tx.Table("Workout").Create(&workDay).Error;
 		if err != nil {
 			fmt.Printf("Workout Error: %+v\n",err)
 			tx.Rollback()
-			return tx.Error;
+			return err;
 		}
 		fmt.Printf("Workout data: %+v\n", workDay)
 		fmt.Printf("Created workout id: %d\n", workDay.Workout_Id)
@@ -117,7 +119,12 @@ func (repo * WorkoutRepository) SaveWorkout(workDay *models.Workout, tx *gorm.DB
 		group := &workDay.Groups[g]
 		group.Workout_Id = workDay.Workout_Id
 		group.Workout_Day_Id = workDay.Workout_Day_Id
-		repo.groupRepo.SaveGroup(group, tx)
+		err := repo.groupRepo.SaveGroup(group, tx)
+		if err != nil {
+			fmt.Printf("The group error: %+v\n", group)
+			tx.Rollback();
+			return err;
+		}
 	}
 	return nil;
 

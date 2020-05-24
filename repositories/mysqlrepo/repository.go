@@ -31,24 +31,26 @@ type ICategoryRepository interface {
 }
 
 type IWorkoutDayRepository interface {
-	SaveWorkoutDay(workDay *models.WorkoutDay) error
+	SaveWorkoutDay(workDay *models.WorkoutDay, tx *gorm.DB) error
 	GetWorkoutDays(userId string) ([]models.WorkoutDay, error)
 	GetWorkoutDaysByParams(queryOptions models.QueryOptions) ([]models.WorkoutDay, error)
 	GetWorkoutDaysSpecifyColumns(queryOptions models.QueryOptions) ([]models.WorkoutDay, error)
 	SaveWorkoutDayLocation(workDay *models.WorkoutDay) (*models.WorkoutDay, error)
-	DeleteWorkoutDays(ids map[string][]string) bool
+	DeleteWorkoutDays(ids map[string][]string, tx *gorm.DB) bool
+	UpdateAllWorkoutDay(workDays []models.WorkoutDay, ids map[string][]string) error
+
 }
 
 type IWorkoutRepository interface {
 	SaveWorkout(workDay *models.Workout, tx *gorm.DB) error
 	GetWorkoutByParams(queryOptions models.QueryOptions) ([]models.Workout, error)
-	DeleteWorkouts(ids map[string][]string) bool
+	DeleteWorkouts(ids map[string][]string, tx *gorm.DB) bool
 }
 
 type IGroupRepository interface {
 	SaveGroup(group *models.Group, tx *gorm.DB) error
 	GetGroupByParams(queryOptions models.QueryOptions) ([]models.Group, error)
-	DeleteGroups(ids map[string][]string) bool
+	DeleteGroups(ids map[string][]string, tx *gorm.DB) bool
 }
 
 type ILocationRepository interface {

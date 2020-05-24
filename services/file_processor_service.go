@@ -56,13 +56,14 @@ func (process *FileProcessorService) ProcessWorkoutFile(file models.WorkoutFile)
 	}
 
 	workoutDayMap := ConvertFileToWorkoutDay(excelFile, newFile, process)
-	
+	workoutDays := make([]models.WorkoutDay, 0, len(workoutDayMap))
 	for w := range workoutDayMap {
 		workoutDay := workoutDayMap[w]
 		workoutDay.Workout_File_Id = &newFile.Workout_File_Id;
-		process.workoutDayRepository.SaveWorkoutDay(workoutDay)
+		workoutDays = append(workoutDays, *workoutDay)
 	}
 
+	process.workoutDayRepository.UpdateAllWorkoutDay(workoutDays, nil)
 	_, err = process.fileRepository.UpdateFileStatus(&newFile, models.FILE_PROCESSED)
 
 	if err != nil {

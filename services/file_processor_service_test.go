@@ -11,6 +11,7 @@ import (
 	"github.com/360EntSecGroup-Skylar/excelize"
 	"encoding/json"
 	"errors"
+	"github.com/jinzhu/gorm"
     // "os"
 )
 
@@ -149,7 +150,7 @@ func (serv WorkoutTypeServiceMock) GetCategoriesAndWorkoutTypes() (map[string]ma
 }
 type WorkoutRepositoryMock struct {}
 
-func (repo WorkoutRepositoryMock) SaveWorkoutDay(workDay *models.WorkoutDay) error {
+func (repo WorkoutRepositoryMock) SaveWorkoutDay(workDay *models.WorkoutDay, tx *gorm.DB) error {
 	return nil
 }
 
@@ -169,10 +170,13 @@ func(repo WorkoutRepositoryMock) SaveWorkoutDayLocation(workDay *models.WorkoutD
 	return nil, nil
 }
 
-func(repo WorkoutRepositoryMock) DeleteWorkoutDays(ids map[string][]string) bool {
+func(repo WorkoutRepositoryMock) DeleteWorkoutDays(ids map[string][]string, tx *gorm.DB) bool {
 	return true
 }
 
+func(repo WorkoutRepositoryMock) UpdateAllWorkoutDay(workDays []models.WorkoutDay, ids map[string][]string) error {
+	return nil
+}
 func TestConvertFileToWorkDayMap(t *testing.T) {
 	t.Run("Testing Convert File to WorkDay Map", func(t *testing.T) {
 		assert := assert.New(t)

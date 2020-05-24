@@ -7,6 +7,7 @@ import (
 	"time"
 	"fmt"
 	Util "github.com/cts3njitedu/healthful-heart/utils"
+	"errors"
 )
 
 type GroupRepository struct {
@@ -17,13 +18,8 @@ func NewGroupRepository(connection connections.IMysqlConnection) * GroupReposito
 	return &GroupRepository{connection}
 }
 
-func (repo *GroupRepository) DeleteGroups(ids map[string][]string) bool {
-	db, err := repo.connection.GetGormConnection();
-	defer db.Close()
-	if err != nil {
-		panic(err.Error())
-	}
-	ret := db.Table("Group").Where("Group_Id IN (?)", ids["Group"]).Or("Workout_Id IN (?)", ids["Workout"]).Or("Workout_Day_Id IN (?)", ids["WorkoutDay"]).Delete(models.Group{})
+func (repo *GroupRepository) DeleteGroups(ids map[string][]string, tx *gorm.DB) bool {
+	ret := tx.Table("Group").Where("Group_Id IN (?)", ids["Group"]).Or("Workout_Id IN (?)", ids["Workout"]).Or("Workout_Day_Id IN (?)", ids["WorkoutDay"]).Delete(models.Group{})
 	if ret.Error != nil {
 		fmt.Printf("Unable to delete Group: %+v\n", ret.Error)
 		return false;
@@ -99,16 +95,22 @@ func (repo *GroupRepository) SaveGroup(group *models.Group, tx *gorm.DB) error {
 				
 				});
 		fmt.Printf("Rows affected: %d, Group Id: %d\n",ret.RowsAffected,group.Group_Id)
+		if (ret.RowsAffected == 0) {
+			tx.Rollback()
+			fmt.Printf("Unable to Find %+v", group.Group_Id)
+			return errors.New(fmt.Sprintf("Unable to Find %+v", group.Group_Id))
+		}
 	} else {
 		t := time.Now()
 		creTs := t.Format("2006-01-02 15:04:05")
 		group.Cre_Ts = &creTs;
+		group.Mod_Ts = nil;
 		group.Version_Nb = 1;
 		err := tx.Table("Group").Create(&group).Error;
 		if err != nil {
 			fmt.Printf("Group error: %+v\n", err)
 			tx.Rollback()
-			return tx.Error;
+			return err;
 		}
 	
 		fmt.Printf("Created group id: %d\n", group.Group_Id)

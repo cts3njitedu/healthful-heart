@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strings"
 	Util "github.com/cts3njitedu/healthful-heart/utils"
+	"errors"
 )
 
 const SQL_QUERY_WORKOUT_DAY string = "user_id = ? AND location_id = ? and workout_date = ?"
@@ -15,19 +16,15 @@ const SQL_QUERY_WORKOUT_DAYS_USER_ID string = "user_id = ?"
 type WorkoutDayRepository struct {
 	connection connections.IMysqlConnection
 	workoutRepo IWorkoutRepository
+	groupRepo IGroupRepository
 }
 
-func NewWorkoutDayRepository(connection connections.IMysqlConnection, workoutRepo IWorkoutRepository) * WorkoutDayRepository {
-	return &WorkoutDayRepository{connection, workoutRepo}
+func NewWorkoutDayRepository(connection connections.IMysqlConnection, workoutRepo IWorkoutRepository, groupRepo IGroupRepository) * WorkoutDayRepository {
+	return &WorkoutDayRepository{connection, workoutRepo, groupRepo}
 }
 
-func (repo * WorkoutDayRepository) DeleteWorkoutDays(ids map[string][]string) bool {
-	db, err := repo.connection.GetGormConnection();
-	defer db.Close()
-	if err != nil {
-		panic(err.Error())
-	}
-	ret := db.Table("WorkoutDay").Where("Workout_Day_Id IN (?)", ids["WorkoutDay"]).Delete(models.Group{})
+func (repo * WorkoutDayRepository) DeleteWorkoutDays(ids map[string][]string, tx *gorm.DB) bool {
+	ret := tx.Table("WorkoutDay").Where("Workout_Day_Id IN (?)", ids["WorkoutDay"]).Delete(models.WorkoutDay{})
 	if ret.Error != nil {
 		fmt.Printf("Unable to delete Workouts %+v\n", ret.Error)
 		return false;
@@ -132,7 +129,7 @@ func (repo * WorkoutDayRepository) SaveWorkoutDayLocation(workDay *models.Workou
 	return workDay, nil
 }
 
-func (repo * WorkoutDayRepository) SaveWorkoutDay(workDay *models.WorkoutDay) error {
+func (repo *WorkoutDayRepository) UpdateAllWorkoutDay(workDays []models.WorkoutDay, ids map[string][]string) error {
 	db, err := repo.connection.GetGormConnection();
 	defer db.Close()
 	if err != nil {
@@ -144,44 +141,95 @@ func (repo * WorkoutDayRepository) SaveWorkoutDay(workDay *models.WorkoutDay) er
 			  tx.Rollback()
 			}
 		}()
-		var workDayQuery *models.WorkoutDay = &models.WorkoutDay{}
-		if workDay.Workout_Day_Id == 0 {
-			tx.Table("WorkoutDay").Where(SQL_QUERY_WORKOUT_DAY, workDay.User_Id, workDay.Location_Id, workDay.Workout_Date).
-			First(&workDayQuery)
-		} else {
-			workDayQuery = workDay;
-		}
-	
-		if workDayQuery.Workout_Day_Id != 0 {
-			workDay.Workout_Day_Id = workDayQuery.Workout_Day_Id;
-			ret := tx.Table("WorkoutDay").
-				Where("workout_day_id = ? AND version_nb = ?",workDay.Workout_Day_Id, workDayQuery.Version_Nb).
-				Updates(map[string]interface{}{"mod_ts": time.Now(), "version_nb": workDayQuery.Version_Nb + 1});
-			fmt.Printf("Rows affected: %d, Workout Day Id: %d\n",ret.RowsAffected,workDay.Workout_Day_Id)
 		
-		} else {
-			t := time.Now()
-			creTs := t.Format("2006-01-02 15:04:05")
-			workDay.Cre_Ts = &creTs;
-			workDay.Version_Nb = 1;
-			err := tx.Table("WorkoutDay").Create(&workDay).Error;
+		for w := range workDays {
+			workDay := &workDays[w]
+			err = repo.SaveWorkoutDay(workDay, tx)
 			if err != nil {
-				fmt.Printf("WorkoutDay Error: %+v\n",err)
 				tx.Rollback()
-				return tx.Error;
+				fmt.Printf("Workout Day Save Error: %+v\n", workDay.Workout_Day_Id)
+				return err
 			}
-			fmt.Printf("Created workout day id: %d\n", workDay.Workout_Day_Id)
 		}
 
-		for w := range workDay.Workouts {
-			workOut := &workDay.Workouts[w]
-			workOut.Workout_Day_Id = workDay.Workout_Day_Id
-			err := repo.workoutRepo.SaveWorkout(workOut, tx)
-			if err != nil {
-				fmt.Printf("The workout error: %+v\n", workOut)
-			}
+		if ids == nil {
+			return nil
 		}
+		ret := repo.groupRepo.DeleteGroups(ids, tx)
+		if !ret {
+			tx.Rollback();
+			return errors.New("Unable to Delete Group")
+		}
+
+		ret = repo.workoutRepo.DeleteWorkouts(ids, tx)
+		if !ret {
+			tx.Rollback();
+			return errors.New("Unable to Delete Workouts")
+		}
+
+		ret = repo.DeleteWorkoutDays(ids, tx);
+		if !ret {
+			tx.Rollback();
+			return errors.New("Unable to Delete Workout Days")
+		}
+
 
 		return nil
 	})
+}
+
+func (repo * WorkoutDayRepository) SaveWorkoutDay(workDay *models.WorkoutDay, tx *gorm.DB) error {
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	var workDayQuery *models.WorkoutDay = &models.WorkoutDay{}
+	if workDay.Workout_Day_Id == 0 {
+		tx.Table("WorkoutDay").Where(SQL_QUERY_WORKOUT_DAY, workDay.User_Id, workDay.Location_Id, workDay.Workout_Date).
+		First(&workDayQuery)
+	} else {
+		workDayQuery = workDay;
+	}
+
+	if workDayQuery.Workout_Day_Id != 0 {
+		workDay.Workout_Day_Id = workDayQuery.Workout_Day_Id;
+		ret := tx.Table("WorkoutDay").
+			Where("workout_day_id = ? AND version_nb = ?",workDay.Workout_Day_Id, workDayQuery.Version_Nb).
+			Updates(map[string]interface{}{"mod_ts": time.Now(), "version_nb": workDayQuery.Version_Nb + 1});
+		fmt.Printf("Rows affected: %d, Workout Day Id: %d\n",ret.RowsAffected,workDay.Workout_Day_Id)
+		if (ret.RowsAffected == 0) {
+			tx.Rollback()
+			fmt.Printf("Unable to Find %+v", workDay.Workout_Day_Id)
+			return errors.New("Unable to Update")
+		}
+	
+	} else {
+		t := time.Now()
+		creTs := t.Format("2006-01-02 15:04:05")
+		workDay.Cre_Ts = &creTs;
+		workDay.Mod_Ts = nil;
+		workDay.Version_Nb = 1;
+		err := tx.Table("WorkoutDay").Create(&workDay).Error;
+		if err != nil {
+			fmt.Printf("WorkoutDay Error: %+v\n",err)
+			tx.Rollback()
+			return tx.Error;
+		}
+		fmt.Printf("Created workout day id: %d\n", workDay.Workout_Day_Id)
+	}
+
+	for w := range workDay.Workouts {
+		workOut := &workDay.Workouts[w]
+		workOut.Workout_Day_Id = workDay.Workout_Day_Id
+		err := repo.workoutRepo.SaveWorkout(workOut, tx)
+		if err != nil {
+			fmt.Printf("The workout error: %+v\n", workOut)
+			tx.Rollback();
+			return err;
+		}
+	}
+
+	return nil;
+
 }

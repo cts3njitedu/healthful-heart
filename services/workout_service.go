@@ -433,29 +433,13 @@ func (serv * WorkoutService) ActionWorkoutDay(heartRequest models.HeartRequest, 
 		eventDetails := make([]models.ModEventDetail,0,10);
 		workoutDaysModified := findWorkoutDaysDifferences(workoutDaysCurrent, workoutDaysOriginal, &eventDetails)
 		findDeletedIds(workoutDaysOriginal, deletedIds, &eventDetails)
-		fmt.Printf("Changes: %+v, Modified: %+v\n", &eventDetails, workoutDaysModified)
-		for w := range workoutDaysModified {
-			workoutDay := &workoutDaysModified[w]
-			err := serv.workoutDayRepository.SaveWorkoutDay(workoutDay)
-			if err != nil {
-				addError(heartRequest.ActionType)
-			}
+		fmt.Printf("Changes: %+v, Modified: %+v, Deleted: %+v\n", &eventDetails, workoutDaysModified, deletedIds)
+		err := serv.workoutDayRepository.UpdateAllWorkoutDay(workoutDaysModified, deletedIds)
+		if err != nil {
+			fmt.Printf("Something went wrong here: %+v\n", err)
+			heartResponse,err = addError(heartRequest.ActionType)
+			return heartResponse, err
 		}
-		err := serv.groupRepository.DeleteGroups(deletedIds)
-		if !err {
-			fmt.Printf("Failed to delete Group")
-		} else {
-			err = serv.workoutRepository.DeleteWorkouts(deletedIds)
-			if !err {
-				fmt.Printf("Failed to delete Workouts")
-			} else {
-				err = serv.workoutDayRepository.DeleteWorkoutDays(deletedIds)
-				if !err {
-					fmt.Printf("Failed to delete Workout Days")
-				}
-			}
-		}
-		
 		fmt.Printf("Workout Current: %+v\n", workoutDaysModified)
 		findWorkoutDaysAdded(workoutDaysModified, workoutDaysOriginal, &eventDetails)
 		heartResponse.ActionType = models.WORKOUTS_ACTION_SUCCESS
@@ -605,9 +589,22 @@ func findWorkoutDaysDifferences(currs [] models.WorkoutDay, origins []models.Wor
 				isModified = true;
 			}
 			modifyWorkouts := findWorkoutsDifferences(wd.Workouts, val.Workouts, eventDetails)
-			if isModified || len(modifyWorkouts) > 0 {
+			if isModified || len(modifyWorkouts) > 0 || wd.Mod_Ts != nil {
 				wd.Workouts = modifyWorkouts
 				// fmt.Printf("Changed Workouts: %+v\n", wd)
+				if wd.Mod_Ts != nil || len(modifyWorkouts) > 0 {
+					modDetail := models.ModEventDetail{};
+					modDetail.Gym_Id = wd.Workout_Day_Id
+					modDetail.Table_Name = "WorkoutDay"
+					if wd.Mod_Ts != nil {
+						modDetail.Table_Column = "Workout Deleted"
+					} else {
+						modDetail.Table_Column = "Workout Added"
+					}
+					modDetail.Action = "MODIFY"
+					*eventDetails = append(*eventDetails, modDetail)
+
+				}
 				modifyWorkoutDays = append(modifyWorkoutDays, wd)
 			}
 			
@@ -642,8 +639,21 @@ func findWorkoutsDifferences(currs [] models.Workout, origins []models.Workout, 
 				isModified = true;
 			}
 			modifyGroups := findGroupDifferences(wk.Groups, val.Groups, eventDetails)
-			if isModified || len(modifyGroups) > 0 {
+			if isModified || len(modifyGroups) > 0 || wk.Mod_Ts != nil {
 				wk.Groups = modifyGroups
+				if wk.Mod_Ts != nil || len(modifyGroups) > 0 {
+					modDetail := models.ModEventDetail{};
+					modDetail.Gym_Id = wk.Workout_Id
+					modDetail.Table_Name = "Workout"
+					if wk.Mod_Ts != nil {
+						modDetail.Table_Column = "Group Deleted"
+					} else {
+						modDetail.Table_Column = "Group Added"
+					}
+					modDetail.Action = "MODIFY"
+					*eventDetails = append(*eventDetails, modDetail)
+
+				}
 				modifyWorkouts = append(modifyWorkouts, wk)
 			}
 		} else {
@@ -779,16 +789,29 @@ func addError(actionType string) (models.HeartResponse, error) {
 
 func validateField(actionMap map[string]map[string]models.Field, sectionId string, fields []models.Field) ([]models.Field, bool) {
 	newFields := make([]models.Field, 0, len(fields))
+	sectionFieldMap := actionMap[sectionId];
+	fieldMap := make(map[string]models.Field)
+	for _, field := range fields {
+		fieldMap[field.Name] = field;
+	}
 	fieldValidator := validators.FieldValidator{}
 	var isError bool = false;
-	for f := range fields {
-		field := fields[f];
-		newField := Util.CloneField(actionMap[sectionId][field.Name]);
-		newField.Value = field.Value;
-		newField.Items = field.Items
-		fieldValidator.FieldValidators(&newField);
+	for _, field := range sectionFieldMap {
+		newField := Util.CloneField(field);
+		if val, ok := fieldMap[newField.Name]; ok {
+			newField.Value = val.Value;
+			newField.Items = val.Items
+		}
+		fieldValidator.FieldValidators(&newField)
 		isError = isError || len(newField.Errors) > 0;
-		newFields = append(newFields, newField);
+		if _,ok := fieldMap[newField.Name]; ok {
+			newFields = append(newFields, newField);
+		} else {
+			if len(newField.Errors) > 0 {
+				newFields = append(newFields, newField);
+			}
+		}
+
 	}
 	return newFields, isError
 }
