@@ -70,7 +70,17 @@ func (repo *GroupRepository) SaveGroup(group *models.Group, tx *gorm.DB) error {
 	if group.Group_Id != 0 {
 		ret := tx.Table("Group").
 			Where("group_id = ? AND version_nb = ?",group.Group_Id, group.Version_Nb).
-			Updates(map[string]interface{}{"mod_ts": time.Now(), "version_nb": group.Version_Nb + 1});
+			Updates(map[string]interface{}{
+				"mod_ts": time.Now(), 
+				"version_nb": group.Version_Nb + 1,
+				"sets": group.Sets,
+				"repetitions" : group.Repetitions,
+				"weight": group.Weight,
+				"duration": group.Duration,
+				"variation": group.Variation,
+				
+				
+				});
 		fmt.Printf("Rows affected: %d, Group Id: %d\n",ret.RowsAffected,group.Group_Id)
 	} else {
 		t := time.Now()

@@ -430,20 +430,115 @@ func (serv * WorkoutService) ActionWorkoutDay(heartRequest models.HeartRequest, 
 		workoutDaysCurrent, deletedIds := serv.mapper.MapWorkoutDayRequestToWorkoutDay(heartRequest, cred.UserId)
 		workoutDaysOriginal := loadWorkoutDayOriginal(workoutDaysCurrent, serv)
 		eventDetails := make([]models.ModEventDetail,0,10);
-		findWorkoutDaysDifferences(workoutDaysCurrent, workoutDaysOriginal, &eventDetails)
+		workoutDaysModified := findWorkoutDaysDifferences(workoutDaysCurrent, workoutDaysOriginal, &eventDetails)
 		findDeletedIds(workoutDaysOriginal, deletedIds, &eventDetails)
-		fmt.Printf("Changes: %+v\n", &eventDetails)
-		for w := range workoutDaysCurrent {
-			workoutDay := &workoutDaysCurrent[w]
+		fmt.Printf("Changes: %+v, Modified: %+v\n", &eventDetails, workoutDaysModified)
+		for w := range workoutDaysModified {
+			workoutDay := &workoutDaysModified[w]
 			err := serv.workoutDayRepository.SaveWorkoutDay(workoutDay)
 			if err != nil {
 				addError(heartRequest.ActionType)
 			}
 		}
+		fmt.Printf("Workout Current: %+v\n", workoutDaysModified)
+		findWorkoutDaysAdded(workoutDaysModified, workoutDaysOriginal, &eventDetails)
 		heartResponse.ActionType = models.WORKOUTS_ACTION_SUCCESS
-		heartResponse.WorkoutDays = heartRequest.WorkoutDays
+		heartResponse.ActionInfo = buildActionResponse(eventDetails)
 	}
 	return heartResponse, nil;
+}
+
+func buildActionResponse(eventDetails []models.ModEventDetail) (models.ActionInfo) {
+	add := make(map[string][]interface{})
+	del := make(map[string][]interface{})
+	modify := make(map[string][]interface{})
+	for _, detail := range eventDetails {
+		if (detail.Action == "ADD") {
+			addIds := add[detail.Table_Name];
+			add[detail.Table_Name] = append(addIds, detail.Gym_Id)
+		} else if (detail.Action == "DELETE") {
+			deletedIds := del[detail.Table_Name]
+			del[detail.Table_Name] = append(deletedIds, detail.Gym_Id)
+		} else if (detail.Action == "MODIFY") {
+			modifyIds := modify[detail.Table_Name]
+			modify[detail.Table_Name] = append(modifyIds, detail.Gym_Id)
+		}
+	}
+	actionInfo := models.ActionInfo{
+		Added: add,
+		Deleted: del,
+		Modified: modify,
+	}
+	return actionInfo
+}
+
+func findWorkoutDaysAdded(currs [] models.WorkoutDay, origins []models.WorkoutDay, eventDetails *[]models.ModEventDetail) {
+	wMap := make(map[int64]models.WorkoutDay)
+	for _, wd := range origins {
+		wMap[wd.Workout_Day_Id] = wd;
+	}
+	for _, wd := range currs {
+		if val, ok := wMap[wd.Workout_Day_Id]; !ok {
+			modDetail := models.ModEventDetail{};
+			modDetail.Gym_Id = wd.Workout_Day_Id
+			modDetail.Table_Name = "WorkoutDay"
+			modDetail.Action = "ADD"
+			*eventDetails = append(*eventDetails, modDetail)
+			workouts := wd.Workouts;
+			for _, wk := range workouts {
+				modDetail := models.ModEventDetail{};
+				modDetail.Gym_Id = wk.Workout_Id
+				modDetail.Table_Name = "Workout"
+				modDetail.Action = "ADD"
+				*eventDetails = append(*eventDetails, modDetail)
+				groups := wk.Groups;
+				for _, g := range groups {
+					modDetail := models.ModEventDetail{};
+					modDetail.Gym_Id = g.Group_Id
+					modDetail.Table_Name = "Group"
+					modDetail.Action = "ADD"
+					*eventDetails = append(*eventDetails, modDetail)
+				}
+			}
+		} else {
+			wkMap := make(map[int64]models.Workout)
+			for _, wk := range val.Workouts {
+				wkMap[wk.Workout_Id] = wk;
+			}
+			for _, wk := range wd.Workouts {
+				if val, ok := wkMap[wk.Workout_Id]; !ok {
+					modDetail := models.ModEventDetail{};
+					modDetail.Gym_Id = wk.Workout_Id
+					modDetail.Table_Name = "Workout"
+					modDetail.Action = "ADD"
+					*eventDetails = append(*eventDetails, modDetail)
+					for _, g := range wk.Groups {
+						modDetail := models.ModEventDetail{};
+						modDetail.Gym_Id = g.Group_Id
+						modDetail.Table_Name = "Group"
+						modDetail.Action = "ADD"
+						*eventDetails = append(*eventDetails, modDetail)
+					}
+				} else {
+					gMap := make(map[int64]models.Group)
+					for _, g := range val.Groups {
+						gMap[g.Group_Id] = g;
+					}
+
+					for _, g := range wk.Groups {
+						if _, ok := gMap[g.Group_Id]; !ok {
+							modDetail := models.ModEventDetail{};
+							modDetail.Gym_Id = g.Group_Id
+							modDetail.Table_Name = "Group"
+							modDetail.Action = "ADD"
+							*eventDetails = append(*eventDetails, modDetail)
+						}
+					}
+				}
+			}
+		}
+
+	}
 }
 func findDeletedIds(origins [] models.WorkoutDay, deletedIds map[string][]string, eventDetails *[]models.ModEventDetail) {
 	for k, ids := range deletedIds {
@@ -459,12 +554,15 @@ func findDeletedIds(origins [] models.WorkoutDay, deletedIds map[string][]string
 	}
 	
 }
-func findWorkoutDaysDifferences(currs [] models.WorkoutDay, origins []models.WorkoutDay, eventDetails *[]models.ModEventDetail) {
+func findWorkoutDaysDifferences(currs [] models.WorkoutDay, origins []models.WorkoutDay, eventDetails *[]models.ModEventDetail) []models.WorkoutDay {
 	wMap := make(map[int64]models.WorkoutDay)
 	for _, wd := range origins {
 		wMap[wd.Workout_Day_Id] = wd;
 	}
+	modifyWorkoutDays := make([]models.WorkoutDay, 0, len(currs))
+
 	for _, wd := range currs {
+		isModified := false;
 		if val, ok := wMap[wd.Workout_Day_Id]; ok {
 			if (wd.Workout_Date != val.Workout_Date) {
 				modDetail := models.ModEventDetail{};
@@ -477,6 +575,7 @@ func findWorkoutDaysDifferences(currs [] models.WorkoutDay, origins []models.Wor
 				newValue := &wd.Workout_Date
 				modDetail.New_Value = newValue
 				*eventDetails = append(*eventDetails, modDetail)
+				isModified = true;
 			} else if (wd.Location_Id != val.Location_Id) {
 				modDetail := models.ModEventDetail{};
 				modDetail.Gym_Id = wd.Workout_Day_Id
@@ -488,20 +587,31 @@ func findWorkoutDaysDifferences(currs [] models.WorkoutDay, origins []models.Wor
 				newValue := strconv.FormatInt(int64(wd.Location_Id), 10)
 				modDetail.New_Value = &newValue
 				*eventDetails = append(*eventDetails, modDetail)
+				isModified = true;
 			}
-			findWorkoutsDifferences(wd.Workouts, val.Workouts, eventDetails)
+			modifyWorkouts := findWorkoutsDifferences(wd.Workouts, val.Workouts, eventDetails)
+			if isModified || len(modifyWorkouts) > 0 {
+				wd.Workouts = modifyWorkouts
+				// fmt.Printf("Changed Workouts: %+v\n", wd)
+				modifyWorkoutDays = append(modifyWorkoutDays, wd)
+			}
+			
+		} else {
+			modifyWorkoutDays = append(modifyWorkoutDays, wd)
 		}
 	}
-
+	return modifyWorkoutDays
 }
 
-func findWorkoutsDifferences(currs [] models.Workout, origins []models.Workout, eventDetails *[]models.ModEventDetail) {
+func findWorkoutsDifferences(currs [] models.Workout, origins []models.Workout, eventDetails *[]models.ModEventDetail) []models.Workout {
 	wMap := make(map[int64]models.Workout)
 	for _, wk := range origins {
 		wMap[wk.Workout_Id] = wk;
 	}
-
+	modifyWorkouts := make([]models.Workout, 0, len(currs))
 	for _, wk := range currs {
+		isModified := false;
+		
 		if val, ok := wMap[wk.Workout_Id]; ok {
 			if (wk.Workout_Type_Cd != val.Workout_Type_Cd) {
 				modDetail := models.ModEventDetail{};
@@ -514,18 +624,30 @@ func findWorkoutsDifferences(currs [] models.Workout, origins []models.Workout, 
 				newValue := &wk.Workout_Type_Cd
 				modDetail.New_Value = newValue
 				*eventDetails = append(*eventDetails, modDetail)
+				isModified = true;
 			}
-			findGroupDifferences(wk.Groups, val.Groups, eventDetails)
+			modifyGroups := findGroupDifferences(wk.Groups, val.Groups, eventDetails)
+			if isModified || len(modifyGroups) > 0 {
+				wk.Groups = modifyGroups
+				modifyWorkouts = append(modifyWorkouts, wk)
+			}
+		} else {
+			modifyWorkouts = append(modifyWorkouts, wk)
 		}
 	}
+	
+	return modifyWorkouts
 }
 
-func findGroupDifferences(currs [] models.Group, origins []models.Group, eventDetails *[]models.ModEventDetail) {
+func findGroupDifferences(currs [] models.Group, origins []models.Group, eventDetails *[]models.ModEventDetail) []models.Group {
 	gMap := make(map[int64]models.Group)
 	for _, g := range origins {
 		gMap[g.Group_Id] = g;
 	}
+
+	modifyGroups := make([]models.Group, 0, len(currs))
 	for _, g := range currs {
+		isModified := false
 		if val, ok := gMap[g.Group_Id]; ok {
 			if (g.Sets != val.Sets) {
 				modDetail := models.ModEventDetail{};
@@ -538,6 +660,7 @@ func findGroupDifferences(currs [] models.Group, origins []models.Group, eventDe
 				newValue := strconv.FormatInt(int64(g.Sets), 10)
 				modDetail.New_Value = &newValue
 				*eventDetails = append(*eventDetails, modDetail)
+				isModified = true;
 			} else if (g.Repetitions != val.Repetitions) {
 				modDetail := models.ModEventDetail{};
 				modDetail.Gym_Id = g.Group_Id
@@ -549,6 +672,7 @@ func findGroupDifferences(currs [] models.Group, origins []models.Group, eventDe
 				newValue := strconv.FormatInt(int64(g.Repetitions), 10)
 				modDetail.New_Value = &newValue
 				*eventDetails = append(*eventDetails, modDetail)
+				isModified = true;
 			} else if (g.Weight != val.Weight) {
 				modDetail := models.ModEventDetail{};
 				modDetail.Gym_Id = g.Group_Id
@@ -560,6 +684,7 @@ func findGroupDifferences(currs [] models.Group, origins []models.Group, eventDe
 				newValue := strconv.FormatFloat(float64(g.Weight), 'f', -1, 32)
 				modDetail.New_Value = &newValue
 				*eventDetails = append(*eventDetails, modDetail)
+				isModified = true;
 			} else if (g.Duration != val.Duration) {
 				modDetail := models.ModEventDetail{};
 				modDetail.Gym_Id = g.Group_Id
@@ -571,6 +696,7 @@ func findGroupDifferences(currs [] models.Group, origins []models.Group, eventDe
 				newValue := strconv.FormatFloat(float64(g.Duration), 'f', -1, 32)
 				modDetail.New_Value = &newValue
 				*eventDetails = append(*eventDetails, modDetail)
+				isModified = true;
 			} else if (g.Variation != val.Variation) {
 				modDetail := models.ModEventDetail{};
 				modDetail.Gym_Id = g.Group_Id
@@ -582,9 +708,16 @@ func findGroupDifferences(currs [] models.Group, origins []models.Group, eventDe
 				newValue := &g.Variation
 				modDetail.New_Value = newValue
 				*eventDetails = append(*eventDetails, modDetail)
+				isModified = true;
 			}
+			if isModified {
+				modifyGroups = append(modifyGroups, g)
+			}
+		} else {
+			modifyGroups = append(modifyGroups, g)
 		}
 	}
+	return modifyGroups
 }
 func loadWorkoutDayOriginal(workoutDaysCurrent []models.WorkoutDay, serv*WorkoutService) []models.WorkoutDay {
 	workoutDaysOriginal := make([]models.WorkoutDay, 0, len(workoutDaysCurrent)+5)

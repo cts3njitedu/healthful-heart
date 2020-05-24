@@ -4,6 +4,7 @@ import (
 	"github.com/cts3njitedu/healthful-heart/models"
 	"time"
 	"strconv"
+	"fmt"
 
 )
 
@@ -86,6 +87,7 @@ func (mapper *Mapper) MapWorkoutDayRequestToWorkoutDay(heartRequest models.Heart
 		}
 		workoutDay.Workout_Day_Id = workoutDayId
 		workoutDay.User_Id = user
+		workoutDay.Version_Nb, _ = strconv.ParseInt(wd.Version_Nb, 10, 64)
 		for f := range wd.Fields {
 			field := wd.Fields[f]
 			if (field.FieldId == "WORKOUT_DATE") {
@@ -112,6 +114,7 @@ func (mapper *Mapper) MapWorkoutDayRequestToWorkoutDay(heartRequest models.Heart
 			}
 			workout.Workout_Id = workoutId
 			workout.Workout_Day_Id = workoutDayId
+			workout.Version_Nb, _ = strconv.ParseInt(wk.Version_Nb, 10, 64)
 			for f := range wk.Fields {
 				field := wk.Fields[f]
 				if (field.FieldId == "WORKOUT_TYPE_DESC") {
@@ -120,6 +123,7 @@ func (mapper *Mapper) MapWorkoutDayRequestToWorkoutDay(heartRequest models.Heart
 			}
 
 			groups := make([]models.Group, 0, len(wk.Groups))
+			fmt.Printf("Groups Mapper: %+v\n", wk.Groups)
 			for _, g := range wk.Groups {
 				if g.IsDeleted {
 					deleteGroups := deletedMap["Group"];
@@ -135,7 +139,7 @@ func (mapper *Mapper) MapWorkoutDayRequestToWorkoutDay(heartRequest models.Heart
 				group.Group_Id = groupId
 				group.Workout_Id = workoutId
 				group.Workout_Day_Id = workoutDayId
-				
+				group.Version_Nb, _ = strconv.ParseInt(g.Version_Nb, 10, 64)
 				for f := range g.Fields {
 					field := g.Fields[f]
 					if (field.FieldId == "SETS") {

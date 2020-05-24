@@ -72,14 +72,16 @@ func (repo * WorkoutRepository) SaveWorkout(workDay *models.Workout, tx *gorm.DB
 		tx.Table("Workout").Where(SQL_QUERY_WORKOUT, workDay.Workout_Day_Id, workDay.Workout_Type_Cd).
 		First(&workoutQuery);
 	} else {
+		
 		workoutQuery = workDay
+		fmt.Printf("Workout is Here: %+v\n", workoutQuery)
 	}
 
 	if workoutQuery.Workout_Id != 0 {
 		workDay.Workout_Id = workoutQuery.Workout_Id
 		ret := tx.Table("Workout").
 			Where("workout_id = ? AND version_nb = ?",workDay.Workout_Id, workoutQuery.Version_Nb).
-			Updates(map[string]interface{}{"mod_ts": time.Now(), "version_nb": workoutQuery.Version_Nb + 1});
+			Updates(map[string]interface{}{"mod_ts": time.Now(), "version_nb": workoutQuery.Version_Nb + 1, "workout_type_cd": workoutQuery.Workout_Type_Cd});
 		fmt.Printf("Rows affected: %d, Workout Id: %d\n",ret.RowsAffected,workDay.Workout_Id)	
 	} else {
 		t := time.Now()
