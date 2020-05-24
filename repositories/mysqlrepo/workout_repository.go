@@ -79,13 +79,18 @@ func (repo * WorkoutRepository) SaveWorkout(workDay *models.Workout, tx *gorm.DB
 		}
 	}()
 
-	if (workDay.Workout_Id == 0) {
-		tx.Table("Workout").Where(SQL_QUERY_WORKOUT, workDay.Workout_Day_Id, workDay.Workout_Type_Cd).
-		First(&workoutQuery);
-	} else {
-		
-		workoutQuery = workDay
-		fmt.Printf("Workout is Here: %+v\n", workoutQuery)
+
+	tx.Table("Workout").Where(SQL_QUERY_WORKOUT, workDay.Workout_Day_Id, workDay.Workout_Type_Cd).
+	First(&workoutQuery);
+	
+	if workDay.Workout_Id != 0 {
+		if (workoutQuery.Workout_Id !=0 && (workoutQuery.Workout_Id != workDay.Workout_Id)) {
+			tx.Rollback();
+			fmt.Printf("Incorrect info for Workout: %+v\n", workDay.Workout_Id)
+			return errors.New(fmt.Sprintf("Incorrect info for Workout: %+v\n", workDay.Workout_Id))
+		}
+		workoutQuery = workDay;
+		workoutQuery.Version_Nb = workDay.Version_Nb
 	}
 
 	if workoutQuery.Workout_Id != 0 {
@@ -96,8 +101,8 @@ func (repo * WorkoutRepository) SaveWorkout(workDay *models.Workout, tx *gorm.DB
 		fmt.Printf("Rows affected: %d, Workout Id: %d\n",ret.RowsAffected,workDay.Workout_Id)
 		if (ret.RowsAffected == 0) {
 			tx.Rollback()
-			fmt.Printf("Unable to Find %+v", workDay.Workout_Id)
-			return errors.New("Unable to Update")
+			fmt.Printf("Unable to Find Workout: %+v", workDay.Workout_Id)
+			return errors.New(fmt.Sprintf("Unable to Find Workout: %+v", workDay.Workout_Id))
 		}	
 	} else {
 		t := time.Now()

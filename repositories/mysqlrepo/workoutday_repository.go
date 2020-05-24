@@ -185,11 +185,18 @@ func (repo * WorkoutDayRepository) SaveWorkoutDay(workDay *models.WorkoutDay, tx
 		}
 	}()
 	var workDayQuery *models.WorkoutDay = &models.WorkoutDay{}
-	if workDay.Workout_Day_Id == 0 {
-		tx.Table("WorkoutDay").Where(SQL_QUERY_WORKOUT_DAY, workDay.User_Id, workDay.Location_Id, workDay.Workout_Date).
-		First(&workDayQuery)
-	} else {
-		workDayQuery = workDay;
+
+	tx.Table("WorkoutDay").Where(SQL_QUERY_WORKOUT_DAY, workDay.User_Id, workDay.Location_Id, workDay.Workout_Date).
+	First(&workDayQuery)
+	if workDay.Workout_Day_Id != 0 {
+		if ((workDayQuery.Workout_Day_Id !=0 && 
+			(workDayQuery.Workout_Day_Id != workDay.Workout_Day_Id))) {
+				tx.Rollback();
+				fmt.Printf("Incorrect info for Workout Day: %+v\n", workDay.Workout_Day_Id)
+				return errors.New(fmt.Sprintf("Incorrect info for Workout Day: %+v\n", workDay.Workout_Day_Id))
+		}
+		workDayQuery = workDay
+		workDayQuery.Version_Nb = workDay.Version_Nb
 	}
 
 	if workDayQuery.Workout_Day_Id != 0 {
@@ -200,8 +207,9 @@ func (repo * WorkoutDayRepository) SaveWorkoutDay(workDay *models.WorkoutDay, tx
 		fmt.Printf("Rows affected: %d, Workout Day Id: %d\n",ret.RowsAffected,workDay.Workout_Day_Id)
 		if (ret.RowsAffected == 0) {
 			tx.Rollback()
-			fmt.Printf("Unable to Find %+v\n", workDay.Workout_Day_Id)
-			return errors.New(fmt.Sprintf("Unable to Find %+v", workDay.Workout_Day_Id))
+			errString := fmt.Sprintf("Unable to Find Workout Day: %+v\n", workDay.Workout_Day_Id)
+			fmt.Print(errString)
+			return errors.New(errString)
 		}
 	
 	} else {
