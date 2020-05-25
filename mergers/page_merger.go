@@ -425,6 +425,7 @@ func FillLocationSection(locationSection models.Section, locations []models.Loca
 		locationMetaData := models.SectionMetaData{};
 		locationMetaData.Id = strconv.FormatInt(loc.Location_Id,10)
 		locationMetaData.AssociatedIds = associatedIds
+		locationMetaData.VersionNb = loc.Workout_Day_Version_Nb
 		locationMetaData.Page = heartRequest.HeartPagination.Page
 		newSectionInfo.SectionMetaData = locationMetaData
 		newSectionInfo.Section = newSection

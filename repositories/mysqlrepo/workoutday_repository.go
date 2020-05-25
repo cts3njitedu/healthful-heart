@@ -33,6 +33,55 @@ func (repo * WorkoutDayRepository) DeleteWorkoutDays(ids map[string][]string, tx
 	}
 	return true;
 }
+func (repo *WorkoutDayRepository) GetWorkoutDaysLocationByParams(queryOptions models.QueryOptions) ([]models.WorkoutDay, error) {
+	var workoutDays []models.WorkoutDay
+	db, err := repo.connection.GetGormConnection();
+	defer db.Close()
+	if err != nil {
+		panic(err.Error())
+	}
+	columns := map[string]models.QueryOptions {
+		"workout_day_id" : models.QueryOptions{},
+		"user_id" : models.QueryOptions{},
+		"location_id" : models.QueryOptions{},
+		"workout_date" : models.QueryOptions{},
+		"cre_ts" : models.QueryOptions{},
+		"mod_ts" : models.QueryOptions{},
+		"del_ts" : models.QueryOptions{},
+		"version_nb" : models.QueryOptions{},
+		"workout_file_id" : models.QueryOptions{},
+		"name" : models.QueryOptions{},
+		"state" : models.QueryOptions{},
+		"city" : models.QueryOptions{},
+		"country" : models.QueryOptions{},
+		"zipcode" : models.QueryOptions{},
+		"location" : models.QueryOptions{},
+
+	}
+
+	sortMap := map[string]models.QueryOptions {
+		"asc" : models.QueryOptions{},
+		"desc" : models.QueryOptions{},
+	}
+	totalQuery, values := Util.SqlQueryBuilder(queryOptions, columns, sortMap, "View_Workout_Day_Location");
+
+	rows, err := db.Raw(totalQuery, values...).Rows()
+	
+	if err != nil {
+		fmt.Printf("There was an error: %+v\n", err)
+	} else {
+		
+		for rows.Next() {
+			workoutDay := models.WorkoutDay{};
+			location := models.Location{};
+			err = rows.Scan(&workoutDay.Workout_Day_Id, &workoutDay.Location_Id, &workoutDay.Version_Nb, &location.Name, 
+				&location.State, &location.City, &location.Country, &location.Zipcode, &location.Location)
+			workoutDay.Location = location
+			workoutDays = append(workoutDays, workoutDay)
+		}
+	}
+	return workoutDays, nil;
+}
 func (repo *WorkoutDayRepository) GetWorkoutDaysSpecifyColumns(queryOptions models.QueryOptions) ([]models.WorkoutDay, error) {
 	var workoutDays []models.WorkoutDay
 	db, err := repo.connection.GetGormConnection();

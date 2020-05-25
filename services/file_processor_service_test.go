@@ -177,6 +177,10 @@ func(repo WorkoutRepositoryMock) DeleteWorkoutDays(ids map[string][]string, tx *
 func(repo WorkoutRepositoryMock) UpdateAllWorkoutDay(workDays []models.WorkoutDay, ids map[string][]string) error {
 	return nil
 }
+
+func (repo WorkoutRepositoryMock) GetWorkoutDaysLocationByParams(queryOptions models.QueryOptions) ([]models.WorkoutDay, error) {
+	return nil, nil
+}
 func TestConvertFileToWorkDayMap(t *testing.T) {
 	t.Run("Testing Convert File to WorkDay Map", func(t *testing.T) {
 		assert := assert.New(t)

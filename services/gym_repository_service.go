@@ -78,3 +78,7 @@ func (serv * GymRepositoryService) GetGroupByParams(queryOptions models.QueryOpt
 func (serv * GymRepositoryService) GetLocationsQueryParams(queryOptions models.QueryOptions) ([]models.Location, error) {
 	return serv.locationRepository.GetLocationsQueryParams(queryOptions)
 }
+
+func (serv * GymRepositoryService) GetWorkoutDaysLocationByParams(queryOptions models.QueryOptions) ([]models.WorkoutDay, error) {
+	return serv.workoutDayRepository.GetWorkoutDaysLocationByParams(queryOptions)
+}

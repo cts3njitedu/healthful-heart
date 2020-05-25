@@ -10,6 +10,7 @@ type QueryOptions struct {
 	Limit int64
 	Offset int64
 	IsEqual bool
+	WhereEqual map[string]bool
 }
 
 const (

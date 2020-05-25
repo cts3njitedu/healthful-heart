@@ -77,6 +77,7 @@ type IGymRepositoryService interface {
 	GetWorkoutByParams(queryOptions models.QueryOptions) ([]models.Workout, error)
 	GetGroupByParams(queryOptions models.QueryOptions) ([]models.Group, error)
 	GetLocationsQueryParams(queryOptions models.QueryOptions) ([]models.Location, error)
+	GetWorkoutDaysLocationByParams(queryOptions models.QueryOptions) ([]models.WorkoutDay, error)
 }
 
 type IEventService interface {

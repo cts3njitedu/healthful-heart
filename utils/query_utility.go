@@ -64,12 +64,13 @@ func WhereQuery(queryOptions models.QueryOptions) ([]string, []interface{}) {
 	whereQuery := []string{"1=?"};
 	var whereValues []interface{};
 	whereValues = append(whereValues, 1);
+	whereEqual := queryOptions.WhereEqual;
 	if queryOptions.Where != nil && len(queryOptions.Where) > 0 {
 		whereQuery = make([]string, 0, len(queryOptions.Where))
 		whereValues = make([]interface{}, 0, len(queryOptions.Where))
 		for k, v := range queryOptions.Where {
-
-			if !queryOptions.IsEqual {
+			_, isWhere := whereEqual[k];
+			if !queryOptions.IsEqual || !isWhere {
 				if nv, ok := v.(string); ok {
 					whereValues = append(whereValues, nv + "%")
 					whereQuery = append(whereQuery, fmt.Sprintf("%s LIKE ?", k))

@@ -88,24 +88,60 @@ func (serv * WorkoutService) GetWorkoutDaysLocationsView(heartRequest models.Hea
 	locationHeaderSectionInfo, cleanLocationHeaderSection := Merge.FillLocationHeaderSection(locationHeaderSection, locationSection, heartRequest)
 	newSections = append(newSections, Util.CloneSection(cleanLocationHeaderSection))
 	locations := [] models.Location{}
-	locationOptions := models.QueryOptions{};
-	locationOptions.Where = heartRequest.HeartFilter;
-	locationOptions.Order = Util.QueryBuildSort(heartRequest.HeartSort, filterSectionInfo.Section)
-	locationOptions.Limit = heartRequest.HeartPagination.Limit
-	locationOptions.Offset = heartRequest.HeartPagination.Offset
-	workoutQuery := fmt.Sprintf("Select LOCATION_ID FROM WORKOUTDAY WHERE WORKOUT_DATE='%v' AND USER_ID='%v'", dateFormat,cred.UserId);
-	workoutQueryMap := map[string]string {
-		"location_id" : workoutQuery,
-	}
 	
 	associatedIds := make(map[string]interface{});
-	
+
 	if heartRequest.ActionType == models.VIEW_WORKOUTDATE_LOCATIONS {
-		locationOptions.In = workoutQueryMap;
+		options := models.QueryOptions{};
+		
+		options.Where = map[string]interface{} {
+			"workout_date": dateFormat,
+			"user_id" : cred.UserId,
+		}
+		for k, v := range heartRequest.HeartFilter {
+			options.Where[k] = v;
+		}
+		
+		options.WhereEqual = map[string]bool {
+			"workout_date": true,
+			"user_id" : true,
+		}
+		options.Select = []string {"workout_day_id", "location_id", "version_nb", "name", "state", "city", "country", "zipcode", "location"}
+		options.IsEqual = true;
+		options.Order = Util.QueryBuildSort(heartRequest.HeartSort, filterSectionInfo.Section)
+		workoutLocations, err := serv.gymRepoService.GetWorkoutDaysLocationByParams(options)
+		if err != nil {
+			fmt.Printf("Something went horribly wrong: %+v\n", err)
+		} else {
+			
+			for _, wkLoc := range workoutLocations {
+				newLocation := models.Location{};
+				newLocation.Location_Id = wkLoc.Location_Id;
+				newLocation.Name = wkLoc.Location.Name;
+				newLocation.State = wkLoc.Location.State;
+				newLocation.City = wkLoc.Location.City;
+				newLocation.Country = wkLoc.Location.Country;
+				newLocation.Zipcode = wkLoc.Location.Zipcode;
+				newLocation.Location = wkLoc.Location.Location
+				newLocation.Workout_Day_Version_Nb = wkLoc.Version_Nb
+				locations = append(locations, newLocation)
+			}
+		}
+		
 	} else if heartRequest.ActionType == models.VIEW_NON_WORKOUTDATE_LOCATIONS {
+		locationOptions := models.QueryOptions{};
+		locationOptions.Where = heartRequest.HeartFilter;
+		locationOptions.Order = Util.QueryBuildSort(heartRequest.HeartSort, filterSectionInfo.Section)
+		locationOptions.Limit = heartRequest.HeartPagination.Limit
+		locationOptions.Offset = heartRequest.HeartPagination.Offset
+		workoutQuery := fmt.Sprintf("Select LOCATION_ID FROM WORKOUTDAY WHERE WORKOUT_DATE='%v' AND USER_ID='%v'", dateFormat,cred.UserId);
+		workoutQueryMap := map[string]string {
+			"location_id" : workoutQuery,
+		}
 		locationOptions.NotIn = workoutQueryMap
+		locations, _ = serv.gymRepoService.GetLocationsQueryParams(locationOptions)
 	}
-	locations, _ = serv.gymRepoService.GetLocationsQueryParams(locationOptions)
+	
 	
 	locationSectionInfos := Merge.FillLocationSection(locationSection, locations, heartRequest,associatedIds);
 	totalLength = len(locationSectionInfos) + 5;

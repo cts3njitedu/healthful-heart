@@ -38,6 +38,7 @@ type IWorkoutDayRepository interface {
 	SaveWorkoutDayLocation(workDay *models.WorkoutDay) (*models.WorkoutDay, error)
 	DeleteWorkoutDays(ids map[string][]string, tx *gorm.DB) bool
 	UpdateAllWorkoutDay(workDays []models.WorkoutDay, ids map[string][]string) error
+	GetWorkoutDaysLocationByParams(queryOptions models.QueryOptions) ([]models.WorkoutDay, error)
 
 }
 

@@ -57,6 +57,7 @@ type Location struct {
 	Country string `gorm:"column:COUNTRY" json:"country"`
 	Zipcode string `gorm:"column:ZIPCODE" json:"zipCode"`
 	Location string `gorm:"column:LOCATION" json:"locationName"`
+	Workout_Day_Version_Nb int64 `gorm:"-" json:"-"`
 }
 
 type ModEvent struct {
