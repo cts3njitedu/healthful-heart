@@ -2,6 +2,7 @@ package models
 
 type HeartResponse struct {
 	ActionType string `json:"actionType"`
+	SubActionType string `json:"subActionType"`
 	SectionInfos []SectionInfo `json:"sectionInfos"`
 	NewSections []Section `json:"newSections"`
 	Message string `json:"message"`

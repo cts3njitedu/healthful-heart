@@ -3,6 +3,7 @@ package services
 import (
 	"github.com/cts3njitedu/healthful-heart/models"
 	"strconv"
+	"fmt"
 )
 type EventService struct {}
 
@@ -132,6 +133,7 @@ func (serv * EventService) FindWorkoutDaysDifferences(currs [] models.WorkoutDay
 				wd.Workouts = modifyWorkouts
 				// fmt.Printf("Changed Workouts: %+v\n", wd)
 				if wd.Mod_Ts != nil || len(modifyWorkouts) > 0 {
+					fmt.Printf("Changed Workouts: %+v\n", wd)
 					modDetail := models.ModEventDetail{};
 					modDetail.Gym_Id = wd.Workout_Day_Id
 					modDetail.Table_Name = "WorkoutDay"

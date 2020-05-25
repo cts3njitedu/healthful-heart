@@ -25,6 +25,9 @@ func (serv * GymRepositoryService) LoadWorkoutDayOriginal(workoutDaysCurrent []m
 		workoutDayOptions.Where = map[string]interface{} {
 			"Workout_Day_Id" : workoutDay.Workout_Day_Id,
 		}
+		workoutDayOptions.WhereEqual = map[string]bool {
+			"Workout_Day_Id" : true,
+		}
 		workoutDayOptions.IsEqual = true
 		fmt.Printf("Workout Days: %+v\n", workoutDayOptions)
 		workoutDays, _ := serv.workoutDayRepository.GetWorkoutDaysByParams(workoutDayOptions)
@@ -36,6 +39,9 @@ func (serv * GymRepositoryService) LoadWorkoutDayOriginal(workoutDaysCurrent []m
 			workoutOptions.Where = map[string]interface{} {
 				"Workout_Day_Id" : workoutDayOriginal.Workout_Day_Id,
 			}
+			workoutOptions.WhereEqual = map[string]bool{
+				"Workout_Day_Id": true,
+			}
 			workoutOptions.IsEqual = true;
 			workouts, _ := serv.workoutRepository.GetWorkoutByParams(workoutOptions)
 			for wk := range workouts {
@@ -43,6 +49,9 @@ func (serv * GymRepositoryService) LoadWorkoutDayOriginal(workoutDaysCurrent []m
 				groupOptions := models.QueryOptions{};
 				groupOptions.Where = map[string]interface{} {
 					"Workout_Id" : wkOut.Workout_Id,
+				}
+				groupOptions.WhereEqual = map[string]bool {
+					"Workout_Id": true,
 				}
 				groupOptions.IsEqual = true;
 				groups, _ := serv.groupRepository.GetGroupByParams(groupOptions)

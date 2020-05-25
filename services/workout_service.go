@@ -446,6 +446,7 @@ func (serv * WorkoutService) ActionWorkoutDay(heartRequest models.HeartRequest, 
 		}
 	}
 	heartResponse := models.HeartResponse{};
+	heartResponse.SubActionType = heartRequest.SubActionType;
 	if isError {
 		heartResponse.ActionType = models.WORKOUTS_ACTION_ERRORS
 		heartResponse.WorkoutDays = heartRequest.WorkoutDays
@@ -460,6 +461,7 @@ func (serv * WorkoutService) ActionWorkoutDay(heartRequest models.HeartRequest, 
 		if err != nil {
 			fmt.Printf("Something went wrong here: %+v\n", err)
 			heartResponse,err = addError(heartRequest.ActionType)
+			heartResponse.SubActionType = heartRequest.SubActionType;
 			return heartResponse, err
 		}
 		fmt.Printf("Workout Current: %+v\n", workoutDaysModified)

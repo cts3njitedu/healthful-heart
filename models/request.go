@@ -8,6 +8,7 @@ type QueryParams struct {
 
 type HeartRequest struct {
 	ActionType string
+	SubActionType string
 	HeartSort map[string]HeartSort
 	HeartFilter map[string]interface{}
 	HeartPagination HeartPagination
@@ -75,4 +76,7 @@ const (
 	WORKOUTS_ACTION = "WORKOUTS_ACTION"
 	ACTION_WORKOUT = "ACTION_WORKOUT"
 	ACTION_WORKOUTDAY_LOCATION = "ACTION_WORKOUTDAY_LOCATION"
+	ADD_WORKOUT = "ADD_WORKOUT"
+	MODIFY_WORKOUT = "MODIFY_WORKOUT"
+	DELETE_WORKOUT = "DELETE_WORKOUT"
 )
