@@ -19,7 +19,7 @@ func NewLocationRepository(connection connections.IMysqlConnection) * LocationRe
 func (repo * LocationRepository) GetByLocationIds(ids []string) ([]models.Location, error) {
 	locations := make([]models.Location, 0); 
 	db, err := repo.connection.GetGormConnection();
-	defer db.Close()
+	// defer db.Close()
 	if err != nil {
 		panic(err.Error())
 	}
@@ -40,7 +40,7 @@ func (repo * LocationRepository) GetLocations() ([]models.Location, error) {
 func (repo * LocationRepository) GetLocationsQueryParams(queryOptions models.QueryOptions) ([]models.Location, error) {
 	var locations []models.Location
 	db, err := repo.connection.GetGormConnection();
-	defer db.Close()
+	// defer db.Close()
 	if err != nil {
 		panic(err.Error())
 	}

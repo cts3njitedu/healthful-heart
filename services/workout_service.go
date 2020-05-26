@@ -35,6 +35,10 @@ func (serv * WorkoutService) GetWorkoutDays(queryParams models.QueryParams, cred
 		"workout_date" : "asc",
 	}
 	options.Where = whereClause;
+	options.IsEqual = true;
+	options.WhereEqual = map[string]bool {
+		"user_id": true,
+	}
 	options.Order = order;
 	workoutDays, _ := serv.gymRepoService.GetWorkoutDaysByParams(options)
 	fmt.Println("Retrieved workout days for user: ", cred.UserId)
