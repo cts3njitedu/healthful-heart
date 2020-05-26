@@ -22,6 +22,7 @@ func NewMysqlConnection(environmentUtil utils.IEnvironmentUtility) *MysqlConnect
 	fmt.Println("Getting gorm connection...")
 	url := environmentUtil.GetEnvironmentString("CLEARDB_DATABASE_URL")
 	gormConnection, errGorm = gorm.Open("mysql", url)
+	gormConnection.DB().SetMaxIdleConns(0)
 	if errGorm != nil {
 		fmt.Println("This is the error",errGorm);
 	} 
