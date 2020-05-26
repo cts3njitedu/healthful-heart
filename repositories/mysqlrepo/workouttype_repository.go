@@ -18,7 +18,7 @@ func NewWorkoutTypeRepository(connection connections.IMysqlConnection) * Workout
 func (repo * WorkoutTypeRepository) GetWorkoutTypes() ([]models.WorkoutType, error) {
 	var workTypes []models.WorkoutType
 	db, err := repo.connection.GetGormConnection();
-	defer db.Close()
+	// defer db.Close()
 	if err != nil {
 		panic(err.Error())
 	}

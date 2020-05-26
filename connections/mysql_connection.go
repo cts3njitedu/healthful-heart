@@ -15,9 +15,16 @@ type MysqlConnection struct {
 	environmentUtil utils.IEnvironmentUtility
 }
 
-
+var gormConnection *gorm.DB;
+var errGorm error;
 
 func NewMysqlConnection(environmentUtil utils.IEnvironmentUtility) *MysqlConnection {
+	fmt.Println("Getting gorm connection...")
+	url := environmentUtil.GetEnvironmentString("CLEARDB_DATABASE_URL")
+	gormConnection, errGorm = gorm.Open("mysql", url)
+	if errGorm != nil {
+		fmt.Println("This is the error",errGorm);
+	} 
 	return &MysqlConnection{environmentUtil}
 }
 
@@ -46,12 +53,12 @@ func (conn *MysqlConnection) GetDBObject() (*sql.DB, error) {
 }
 
 func (conn *MysqlConnection) GetGormConnection() (*gorm.DB, error) {
-	fmt.Println("Getting gorm connection...")
-	url := conn.environmentUtil.GetEnvironmentString("CLEARDB_DATABASE_URL")
-	db, err := gorm.Open("mysql", url)
-	if err != nil {
-		fmt.Println("This is the error",err);
-		panic(err.Error())
-	}
-	return db, err
+	// fmt.Println("Getting gorm connection...")
+	// url := conn.environmentUtil.GetEnvironmentString("CLEARDB_DATABASE_URL")
+	// db, err := gorm.Open("mysql", url)
+	// if err != nil {
+	// 	fmt.Println("This is the error",err);
+	// 	panic(err.Error())
+	// }
+	return gormConnection, errGorm
 }

@@ -29,7 +29,7 @@ func (repo * LocationRepository) GetByLocationIds(ids []string) ([]models.Locati
 func (repo * LocationRepository) GetLocations() ([]models.Location, error) {
 	var locations []models.Location
 	db, err := repo.connection.GetGormConnection();
-	defer db.Close()
+	// defer db.Close()
 	if err != nil {
 		panic(err.Error())
 	}

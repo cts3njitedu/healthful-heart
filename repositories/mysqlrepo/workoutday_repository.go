@@ -36,7 +36,7 @@ func (repo * WorkoutDayRepository) DeleteWorkoutDays(ids map[string][]string, tx
 func (repo *WorkoutDayRepository) GetWorkoutDaysLocationByParams(queryOptions models.QueryOptions) ([]models.WorkoutDay, error) {
 	var workoutDays []models.WorkoutDay
 	db, err := repo.connection.GetGormConnection();
-	defer db.Close()
+	// defer db.Close()
 	if err != nil {
 		panic(err.Error())
 	}
@@ -85,7 +85,7 @@ func (repo *WorkoutDayRepository) GetWorkoutDaysLocationByParams(queryOptions mo
 func (repo *WorkoutDayRepository) GetWorkoutDaysSpecifyColumns(queryOptions models.QueryOptions) ([]models.WorkoutDay, error) {
 	var workoutDays []models.WorkoutDay
 	db, err := repo.connection.GetGormConnection();
-	defer db.Close()
+	// defer db.Close()
 	if err != nil {
 		panic(err.Error())
 	}
@@ -106,7 +106,7 @@ func (repo *WorkoutDayRepository) GetWorkoutDaysSpecifyColumns(queryOptions mode
 func (repo *WorkoutDayRepository) GetWorkoutDaysByParams(queryOptions models.QueryOptions) ([]models.WorkoutDay, error) {
 	var workoutDays []models.WorkoutDay
 	db, err := repo.connection.GetGormConnection();
-	defer db.Close()
+	// defer db.Close()
 	if err != nil {
 		panic(err.Error())
 	}
@@ -148,7 +148,7 @@ func (repo *WorkoutDayRepository) GetWorkoutDaysByParams(queryOptions models.Que
 func (repo * WorkoutDayRepository) GetWorkoutDays(userId string) ([]models.WorkoutDay, error) {
 	var workoutDays []models.WorkoutDay
 	db, err := repo.connection.GetGormConnection();
-	defer db.Close()
+	// defer db.Close()
 	if err != nil {
 		panic(err.Error())
 	}
@@ -158,7 +158,7 @@ func (repo * WorkoutDayRepository) GetWorkoutDays(userId string) ([]models.Worko
 
 func (repo * WorkoutDayRepository) SaveWorkoutDayLocation(workDay *models.WorkoutDay) (*models.WorkoutDay, error) {
 	db, err := repo.connection.GetGormConnection();
-	defer db.Close()
+	// defer db.Close()
 	if err != nil {
 		panic(err.Error())
 	}
@@ -180,7 +180,7 @@ func (repo * WorkoutDayRepository) SaveWorkoutDayLocation(workDay *models.Workou
 
 func (repo *WorkoutDayRepository) UpdateAllWorkoutDay(workDays []models.WorkoutDay, ids map[string][]string) error {
 	db, err := repo.connection.GetGormConnection();
-	defer db.Close()
+	// defer db.Close()
 	if err != nil {
 		panic(err.Error())
 	}

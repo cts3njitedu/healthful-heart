@@ -34,7 +34,7 @@ func (repo * WorkoutRepository) DeleteWorkouts(ids map[string][]string, tx *gorm
 func (repo *WorkoutRepository) GetWorkoutByParams(queryOptions models.QueryOptions) ([]models.Workout, error) {
 	var workouts []models.Workout
 	db, err := repo.connection.GetGormConnection();
-	defer db.Close()
+	// defer db.Close()
 	if err != nil {
 		panic(err.Error())
 	}

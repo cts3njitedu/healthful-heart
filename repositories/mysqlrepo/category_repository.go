@@ -20,7 +20,7 @@ func (repo * CategoryRepository) GetCategories() ([]models.Category, error) {
 	var categories []models.Category
 	db, err := repo.connection.GetGormConnection();
 	fmt.Printf("Type of db connection: %T", db)
-	defer db.Close()
+	// defer db.Close()
 	if err != nil {
 		panic(err.Error())
 	}

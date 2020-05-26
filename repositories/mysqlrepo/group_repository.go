@@ -32,7 +32,7 @@ func (repo *GroupRepository) DeleteGroups(ids map[string][]string, tx *gorm.DB) 
 func (repo *GroupRepository) GetGroupByParams(queryOptions models.QueryOptions) ([]models.Group, error) {
 	var groups []models.Group
 	db, err := repo.connection.GetGormConnection();
-	defer db.Close()
+	// defer db.Close()
 	if err != nil {
 		panic(err.Error())
 	}
