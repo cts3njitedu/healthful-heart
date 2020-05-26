@@ -13,6 +13,8 @@ import (
 
 const SQL_QUERY_WORKOUT_DAY string = "user_id = ? AND location_id = ? and workout_date = ?"
 const SQL_QUERY_WORKOUT_DAYS_USER_ID string = "user_id = ?"
+const SQL_QUERY_WORKOUT_DAYS_LOCATION string = "(SELECT W.*, L.NAME, L.`STATE`, L.CITY, L.COUNTRY, L.ZIPCODE, L.`LOCATION` FROM WorkoutDay W " +
+" left join `Location` L on W.LOCATION_ID = L.LOCATION_ID) AS T "
 type WorkoutDayRepository struct {
 	connection connections.IMysqlConnection
 	workoutRepo IWorkoutRepository
@@ -63,7 +65,7 @@ func (repo *WorkoutDayRepository) GetWorkoutDaysLocationByParams(queryOptions mo
 		"asc" : models.QueryOptions{},
 		"desc" : models.QueryOptions{},
 	}
-	totalQuery, values := Util.SqlQueryBuilder(queryOptions, columns, sortMap, "View_Workout_Day_Location");
+	totalQuery, values := Util.SqlQueryBuilder(queryOptions, columns, sortMap, SQL_QUERY_WORKOUT_DAYS_LOCATION);
 
 	rows, err := db.Raw(totalQuery, values...).Rows()
 	

@@ -248,6 +248,9 @@ func (serv *WorkoutService) GetWorkouts(heartRequest models.HeartRequest, cred m
 	workoutOptions.Order = map[string]string{
 		"workout_id" : "asc",
 	}
+	workoutOptions.WhereEqual = map[string]bool{
+		"Workout_Day_Id": true,
+	}
 	workoutOptions.IsEqual = true
 	workouts, _ := serv.gymRepoService.GetWorkoutByParams(workoutOptions)
 	fmt.Printf("Workouts: %+v\n", workouts)
@@ -287,6 +290,11 @@ func (serv * WorkoutService) GetWorkoutPageHeader(heartRequest models.HeartReque
 		"WORKOUT_DATE" : dateFormat,
 		"USER_ID" : cred.UserId,
 		"LOCATION_ID": heartRequest.LocationId,
+	}
+	workoutDayOptions.WhereEqual = map[string]bool{
+		"WORKOUT_DATE" : true,
+		"USER_ID" : true,
+		"LOCATION_ID": true,
 	}
 	workoutDayOptions.IsEqual = true;
 	workoutDays, _ := serv.gymRepoService.GetWorkoutDaysByParams(workoutDayOptions)
@@ -350,6 +358,9 @@ func (serv * WorkoutService) GetWorkoutDetails(heartRequest models.HeartRequest,
 
 	workoutOptions.Where = map[string]interface{} {
 		"Workout_Id" : heartRequest.WorkoutId,
+	}
+	workoutOptions.WhereEqual = map[string]bool {
+		"Workout_Id": true,
 	}
 	workoutOptions.IsEqual = true
 	workouts, _ := serv.gymRepoService.GetWorkoutByParams(workoutOptions)
