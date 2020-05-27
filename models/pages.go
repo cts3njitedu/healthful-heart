@@ -37,7 +37,7 @@ type Field struct {
 	ParentId string `bson:"parentId" json:"parentId"`
 	FieldId string `bson:"fieldId" json:"fieldId"`
 	Name string `bson:"name" json:"name"`
-	Value string `bson:"value" json:"value"`
+	Value *string `bson:"value" json:"value"`
 	Placeholder string `bson:"placeholder" json:"placeholder"`
 	IsDisabled bool `bson:"isDisabled" json:"isDisabled"`
 	Type string `bson:"type" json:"type"`

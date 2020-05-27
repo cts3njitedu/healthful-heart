@@ -5,6 +5,7 @@ import (
 	"time"
 	"strconv"
 	"fmt"
+	"strings"
 
 )
 
@@ -26,19 +27,20 @@ func (mapper *Mapper) MapPageToCredentials(page models.Page) models.Credentials 
 	var cred models.Credentials
 	for _,section := range page.Sections {
 		for _, field := range section.Fields {
+			val := *field.Value
 			switch field.Name {
 			case "username":
-				cred.Username = field.Value
+				cred.Username = val
 			case "password":
-				cred.Password = field.Value
+				cred.Password = val
 			case "confirmPassword":
-				cred.ConfirmPassword = field.Value
+				cred.ConfirmPassword = val
 			case "email":
-				cred.Email = field.Value
+				cred.Email = val
 			case "firstname":
-				cred.FirstName = field.Value
+				cred.FirstName = val
 			case "lastname": 
-				cred.LastName = field.Value
+				cred.LastName = val
 			}
 		}
 	}
@@ -93,11 +95,19 @@ func (mapper *Mapper) MapWorkoutDayRequestToWorkoutDay(heartRequest models.Heart
 		for f := range wd.Fields {
 			field := wd.Fields[f]
 			if (field.FieldId == "WORKOUT_DATE") {
-				date, _ := time.Parse("20060102", field.Value)
+				date, err := time.Parse("20060102", *field.Value)
+				if err != nil {
+					panic(err)
+				}
 				dateFormat := date.Format("2006-01-02 15:04:05")
 				workoutDay.Workout_Date = dateFormat;
 			} else if (field.FieldId == "LOCATION_ID") {
-				workoutDay.Location_Id,_ = strconv.ParseInt(field.Value, 10, 64)
+				locationId , err := strconv.ParseInt(*field.Value, 10, 64)
+				if err != nil {
+					panic(err)
+				}
+				workoutDay.Location_Id = locationId
+				
 			}
 		}
 
@@ -121,7 +131,7 @@ func (mapper *Mapper) MapWorkoutDayRequestToWorkoutDay(heartRequest models.Heart
 			for f := range wk.Fields {
 				field := wk.Fields[f]
 				if (field.FieldId == "WORKOUT_TYPE_DESC") {
-					workout.Workout_Type_Cd = field.Value
+					workout.Workout_Type_Cd = *field.Value
 				}
 			}
 
@@ -147,16 +157,55 @@ func (mapper *Mapper) MapWorkoutDayRequestToWorkoutDay(heartRequest models.Heart
 				group.Version_Nb, _ = strconv.ParseInt(g.Version_Nb, 10, 64)
 				for f := range g.Fields {
 					field := g.Fields[f]
+					value := "";
+					if field.Value != nil {
+						value = *field.Value
+						value = strings.TrimSpace(value)
+					}
 					if (field.FieldId == "SETS") {
-						group.Sets, _ = strconv.Atoi(field.Value);
+						if field.Value == nil {
+							group.Sets = nil
+						} else {
+							val, err := strconv.Atoi(value)
+							if err != nil {
+								panic(err)
+							}
+							group.Sets = &val;
+						}
 					} else if (field.FieldId == "REPETITIONS") {
-						group.Repetitions, _ = strconv.Atoi(field.Value);
+						if field.Value == nil {
+							group.Repetitions = nil;
+						} else {
+							val, err := strconv.Atoi(value)
+							if err != nil {
+								panic(err)
+							}
+							group.Repetitions = &val;
+						}	
 					} else if (field.FieldId == "WEIGHT") {
-						weight, _ := strconv.ParseFloat(field.Value, 32)
-						group.Weight = float32(weight)
+						if field.Value == nil || len(value) == 0 {
+							group.Weight = nil;
+						} else {
+							weight, err := strconv.ParseFloat(value, 32)
+							if err != nil {
+								panic(err)
+							}
+							flValue := float32(weight)
+							group.Weight = &flValue
+						}
+						
 					} else if (field.FieldId == "DURATION") {
-						duration, _ := strconv.ParseFloat(field.Value, 32)
-						group.Duration = float32(duration)
+						if field.Value == nil || len(value) == 0 {
+							group.Duration = nil;
+						} else {
+							duration, err := strconv.ParseFloat(value, 32)
+							if err != nil {
+								panic(err)
+							}
+							flValue := float32(duration)
+							group.Duration = &flValue
+						}
+						
 					} else if (field.FieldId == "VARIATION") {
 						group.Variation = field.Value
 					}

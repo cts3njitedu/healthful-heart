@@ -16,6 +16,7 @@ func (fieldValidator *FieldValidator) FieldValidators(field *models.Field) {
 	fValidator := FieldValidator{};
 	for v := range field.Validations {
 		validation := &field.Validations[v]
+		// log.Printf("Field Name: %+v, Validation: %+v", field.Name, validation.ValidationName)
 		switch validation.ValidationName {
 		case "MANDATORY":
 			fValidator.MandatoryFieldValidator(field, validation)
@@ -33,7 +34,11 @@ func (fieldValidator *FieldValidator) FieldValidators(field *models.Field) {
 func (fieldValidator *FieldValidator) MandatoryFieldValidator(field *models.Field, v *models.Validation) {
 
 	if field.IsMandatory {
-		v.IsValid = len(field.Value)>0
+		if field.Value == nil {
+			v.IsValid = false;
+		} else {
+			v.IsValid = len(*field.Value)>0
+		}
 	} else {
 		v.IsValid = true;
 	}
@@ -45,23 +50,42 @@ func (fieldValidator *FieldValidator) RegexValueValidator(field *models.Field, v
 	if err!=nil {
 		log.Fatal(err)
 	}
-	v.IsValid = r.MatchString(field.Value);
+	if field.Value == nil {
+		if (field.MinLength != 0) {
+			v.IsValid = false
+		} else {
+			v.IsValid = true;
+		}
+	} else {
+		v.IsValid = r.MatchString(*field.Value);
+	}
+	// log.Printf("Finish Validation Regex %v", field.Name)
 	appendToFieldErrors(field,v)
 }
 
 func (fieldValidator *FieldValidator) LengthValidator(field *models.Field, v *models.Validation) {
-	v.IsValid = (len(field.Value)>=field.MinLength && len(field.Value)<=field.MaxLength)
+	if (field.Value == nil) {
+		if (field.MinLength == 0) {
+			v.IsValid = true;
+		} else {
+			v.IsValid = false
+		}
+		
+	} else {
+		v.IsValid = (len(*field.Value)>=field.MinLength && len(*field.Value)<=field.MaxLength)
+	}
+	
 	appendToFieldErrors(field,v)
 }
 
 func (fieldValidator *FieldValidator) DropDownValidator(field *models.Field, v *models.Validation) {
-	if (field.Items == nil || len(field.Items) == 0) {
+	if (field.Items == nil || len(field.Items) == 0 || field.Value == nil) {
 		v.IsValid = false;
 	} else {
 		v.IsValid = false;
 		for i := range field.Items {
 			item := field.Items[i];
-			if (item.Id == field.Value && len(item.Item) > 0) {
+			if (item.Id == *field.Value && len(item.Item) > 0) {
 				v.IsValid = true;
 				break;
 			}

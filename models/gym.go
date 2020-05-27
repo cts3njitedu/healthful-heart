@@ -37,12 +37,12 @@ type Group struct {
 	Group_Id int64 `gorm:"column:GROUP_ID;primary_key;not null; auto_increment"`
 	Workout_Id int64 `gorm:"column:WORKOUT_ID"`
 	Workout_Day_Id int64 `gorm:"column:WORKOUT_DAY_ID"`
-	Sequence int64 `gorm:"column:SEQUENCE"`
-	Sets int `gorm:"column:SETS"`
-	Repetitions int `gorm:"column:REPETITIONS"`
-	Weight float32 `gorm:"column:WEIGHT"`
-	Duration float32 `gorm:"column:DURATION"`
-	Variation string `gorm:"column:VARIATION"`
+	Sequence *int64 `gorm:"column:SEQUENCE"`
+	Sets *int `gorm:"column:SETS"`
+	Repetitions *int `gorm:"column:REPETITIONS"`
+	Weight *float32 `gorm:"column:WEIGHT"`
+	Duration *float32 `gorm:"column:DURATION"`
+	Variation *string `gorm:"column:VARIATION"`
 	Cre_Ts *string `gorm:"column:CRE_TS"`
 	Mod_Ts *string `gorm:"column:MOD_TS"`
 	Del_Ts *string `gorm:"column:DEL_TS"`

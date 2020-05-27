@@ -97,16 +97,17 @@ func (parser *GroupParserService) GetGroups(workoutType string, groupText string
 
 			}
 		}
-		parsedGroup.Sets = sets
-		parsedGroup.Repetitions = repetitions
-		parsedGroup.Weight = weight
+		parsedGroup.Sets = &sets
+		parsedGroup.Repetitions = &repetitions
+		parsedGroup.Weight = &weight
 		parsedGroups = append(parsedGroups, parsedGroup)
 	}
 
 	for g := range parsedGroups {
 		pGroup := &parsedGroups[g]
-		pGroup.Variation = variation
-		pGroup.Sequence = int64(g+1)
+		pGroup.Variation = &variation
+		sequence := int64(g+1)
+		pGroup.Sequence = &sequence
 	}
 	return parsedGroups
 }

@@ -49,17 +49,17 @@ func MergeLocationToSection(section models.Section, location models.Location) (m
 	for f := range section.Fields {
 		var field  = &section.Fields[f]
 		if field.FieldId == "LOCATION" {
-			field.Value = location.Location;
+			field.Value = &location.Location;
 		} else if field.FieldId == "ZIPCODE" {
-			field.Value = location.Zipcode
+			field.Value = &location.Zipcode
 		} else if field.FieldId == "STATE" {
-			field.Value = location.State
+			field.Value = &location.State
 		} else if field.FieldId == "CITY" {
-			field.Value = location.City
+			field.Value = &location.City
 		} else if field.FieldId == "COUNTRY" {
-			field.Value = location.Country
+			field.Value = &location.Country
 		} else if field.FieldId == "NAME" {
-			field.Value = location.Name
+			field.Value = &location.Name
 		}
 	}	
 	return section
@@ -69,7 +69,7 @@ func MergeWorkDayToSection(section models.Section, workoutDay models.WorkoutDay,
 	for f := range section.Fields {
 		var field  = &section.Fields[f]
 		if field.FieldId == "WORKOUT_DATE" {
-			field.Value = workoutDay.Workout_Date
+			field.Value = &workoutDay.Workout_Date
 			switch actionType {
 			case models.VIEW_NON_WORKOUTDATE_LOCATIONS:
 				field.IsDisabled = true;
@@ -78,14 +78,17 @@ func MergeWorkDayToSection(section models.Section, workoutDay models.WorkoutDay,
 				field.IsDisabled = true;
 				field.IsHidden = true;
 				fmt.Println(workoutDay.Workout_Date);
-				date, _ := time.Parse("2006-01-02", field.Value);
+				date, err := time.Parse("2006-01-02", *field.Value);
+				if err != nil {
+					panic(err)
+				}
 				year, month, day := date.Date()
 				fmt.Printf("Ball:%v, %v, %v",year, month, day)
 				weekDay := date.Weekday();
 				monthString := time.Month(month)
 				weekDayString := weekDay.String()
 				dateString :=  weekDayString + ", " + monthString.String() + " " + strconv.FormatInt(int64(day), 10) + ", " + strconv.FormatInt(int64(year), 10)
-				field.Value = dateString
+				field.Value = &dateString
 			default:
 				field.IsDisabled = false;
 				field.IsHidden = false;
@@ -105,7 +108,7 @@ func MergeWorkDayToSection(section models.Section, workoutDay models.WorkoutDay,
 				location := workoutDay.Location;
 				if (location != models.Location{}) {
 					locationString := location.Name + ", " + location.City + ", " + location.State;
-					field.Value = locationString
+					field.Value = &locationString
 				} 
 			default:
 				field.IsDisabled = true;
@@ -402,7 +405,8 @@ func FillFilterSection(filterSection models.Section, locationSection models.Sect
 	for f := range newFilterSection.Fields {
 		field := &newFilterSection.Fields[f];
 		if v, ok := heartFilter[field.Name]; ok {
-			field.Value = v.(string)
+			val := v.(string)
+			field.Value = &val
 		}
 	}
 	filterSectionMetaData := models.SectionMetaData{}
@@ -446,9 +450,12 @@ func FillCategoryNavigationSection(navigationSection models.Section, heartReques
 	newNavSection := Util.CloneSection(navigationSection);
 	fields := make([]models.Field, 0, len(keys))
 	for _, k := range keys {
+		
 		field := models.Field{};
-		field.Value = k;
-		field.Name = categories[k];
+		nav := k;
+		field.Value = &nav;
+		field.Name = categories[nav];
+		fmt.Printf("Navigation: %+v, KEY: %+v\n", field, k)
 		fields = append(fields, field)
 	}
 	newNavSection.Fields = fields;
@@ -532,10 +539,10 @@ func FillWorkoutSection(workoutSection models.Section, heartRequest models.Heart
 		for f := range newWorkoutSection.Fields {
 			field := &newWorkoutSection.Fields[f]
 			if (field.FieldId == "CATEGORY_NAME") {
-				field.Value = catCode;
+				field.Value = &catCode;
 				field.Items = catItems;
 			} else if field.FieldId == "WORKOUT_TYPE_DESC" {
-				field.Value = workType
+				field.Value = &workType
 				field.Items = workItems;
 			}
 		}
@@ -553,9 +560,9 @@ func FillCategoryAndWorkoutType(catWorkouts map[string]map[string]string, catego
 	for f := range fields {
 		field := &fields[f];
 		if (field.Name == "categoryName") {
-			catCode = field.Value;
+			catCode = *field.Value;
 		} else if field.Name == "workoutTypeDesc" {
-			workoutType = field.Value;
+			workoutType = *field.Value;
 		}
 	}
 	fmt.Printf("Category: %s, Workout %s\n", catCode, workoutType)
@@ -591,16 +598,36 @@ func FillGroupSection(groupSection models.Section, groups []models.Group) ([]mod
 		for f := range newSection.Fields {
 			field := &newSection.Fields[f];
 			if (field.FieldId == "SETS") {
-				field.Value = strconv.FormatInt(int64(group.Sets), 10)
+				val := strconv.FormatInt(int64(*group.Sets), 10)
+				if group.Sets == nil {
+					field.Value = nil;
+				} else {
+					field.Value = &val
+				}
 				field.IsDisabled = true;
 			} else if (field.FieldId == "REPETITIONS") {
-				field.Value = strconv.FormatInt(int64(group.Repetitions), 10)
+				if group.Repetitions == nil {
+					field.Value = nil;
+				} else {
+					val := strconv.FormatInt(int64(*group.Repetitions), 10)
+					field.Value = &val
+				}	
 				field.IsDisabled = true;
 			} else if (field.FieldId == "WEIGHT") {
-				field.Value = strconv.FormatFloat(float64(group.Weight), 'f', -1, 32)
+				if group.Weight == nil {
+					field.Value = nil
+				} else {
+					val := strconv.FormatFloat(float64(*group.Weight), 'f', -1, 32)
+					field.Value = &val
+				}
 				field.IsDisabled = true;
 			} else if (field.FieldId == "DURATION") {
-				field.Value = strconv.FormatFloat(float64(group.Duration), 'f', -1, 32)
+				if group.Duration == nil {
+					field.Value = nil
+				} else {
+					val := strconv.FormatFloat(float64(*group.Duration), 'f', -1, 32)
+					field.Value = &val
+				}
 				field.IsDisabled = true;
 			} else if (field.FieldId == "VARIATION") {
 				field.Value = group.Variation

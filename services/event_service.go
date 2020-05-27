@@ -215,64 +215,97 @@ func (serv * EventService) FindGroupDifferences(currs [] models.Group, origins [
 	for _, g := range currs {
 		isModified := false
 		if val, ok := gMap[g.Group_Id]; ok {
-			if (g.Sets != val.Sets) {
+			if (isUnequalNilInt(val.Sets, g.Sets)) {
 				modDetail := models.ModEventDetail{};
 				modDetail.Gym_Id = g.Group_Id
 				modDetail.Table_Name = "Group"
 				modDetail.Table_Column = "Sets"
 				modDetail.Action = "MODIFY"
-				oldValue := strconv.FormatInt(int64(val.Sets), 10)
-				modDetail.Old_Value = &oldValue
-				newValue := strconv.FormatInt(int64(g.Sets), 10)
-				modDetail.New_Value = &newValue
+				if val.Sets == nil {
+					modDetail.Old_Value = nil
+				} else {
+					oldValue := strconv.FormatInt(int64(*val.Sets), 10)
+					modDetail.Old_Value = &oldValue
+				}
+				if g.Sets == nil {
+					modDetail.New_Value = nil
+				} else {
+					newValue := strconv.FormatInt(int64(*g.Sets), 10)
+					modDetail.New_Value = &newValue
+				}
 				*eventDetails = append(*eventDetails, modDetail)
 				isModified = true;
-			} else if (g.Repetitions != val.Repetitions) {
+			} else if (isUnequalNilInt(val.Repetitions, g.Repetitions)) {
 				modDetail := models.ModEventDetail{};
 				modDetail.Gym_Id = g.Group_Id
 				modDetail.Table_Name = "Group"
 				modDetail.Table_Column = "Repetitions"
 				modDetail.Action = "MODIFY"
-				oldValue := strconv.FormatInt(int64(val.Repetitions), 10)
-				modDetail.Old_Value = &oldValue
-				newValue := strconv.FormatInt(int64(g.Repetitions), 10)
-				modDetail.New_Value = &newValue
+				if val.Repetitions == nil {
+					modDetail.Old_Value = nil
+				} else {
+					oldValue := strconv.FormatInt(int64(*val.Repetitions), 10)
+					modDetail.Old_Value = &oldValue
+				}
+				if g.Repetitions == nil {
+					modDetail.New_Value = nil
+				} else {
+					newValue := strconv.FormatInt(int64(*g.Repetitions), 10)
+					modDetail.New_Value = &newValue
+				}
 				*eventDetails = append(*eventDetails, modDetail)
 				isModified = true;
-			} else if (g.Weight != val.Weight) {
+			} else if (isUnequalNilFloat32(val.Weight, g.Weight)) {
 				modDetail := models.ModEventDetail{};
 				modDetail.Gym_Id = g.Group_Id
 				modDetail.Table_Name = "Group"
 				modDetail.Table_Column = "Weight"
 				modDetail.Action = "MODIFY"
-				oldValue := strconv.FormatFloat(float64(val.Weight), 'f', -1, 32)
-				modDetail.Old_Value = &oldValue
-				newValue := strconv.FormatFloat(float64(g.Weight), 'f', -1, 32)
-				modDetail.New_Value = &newValue
+				if val.Weight == nil {
+					modDetail.Old_Value = nil
+				} else {
+					oldValue := strconv.FormatFloat(float64(*val.Weight), 'f', -1, 32)
+					modDetail.Old_Value = &oldValue
+				}
+
+				if g.Weight == nil {
+					modDetail.New_Value = nil
+				} else {
+					newValue := strconv.FormatFloat(float64(*g.Weight), 'f', -1, 32)
+					modDetail.New_Value = &newValue
+				}
+					
 				*eventDetails = append(*eventDetails, modDetail)
 				isModified = true;
-			} else if (g.Duration != val.Duration) {
+			} else if (isUnequalNilFloat32(val.Duration, g.Duration)) {
 				modDetail := models.ModEventDetail{};
 				modDetail.Gym_Id = g.Group_Id
 				modDetail.Table_Name = "Group"
 				modDetail.Table_Column = "Duration"
 				modDetail.Action = "MODIFY"
-				oldValue := strconv.FormatFloat(float64(val.Duration), 'f', -1, 32)
-				modDetail.Old_Value = &oldValue
-				newValue := strconv.FormatFloat(float64(g.Duration), 'f', -1, 32)
-				modDetail.New_Value = &newValue
+				if val.Duration == nil {
+					modDetail.Old_Value = nil
+				} else {
+					oldValue := strconv.FormatFloat(float64(*val.Duration), 'f', -1, 32)
+					modDetail.Old_Value = &oldValue
+				}
+
+				if g.Duration == nil {
+					modDetail.New_Value = nil
+				} else {
+					newValue := strconv.FormatFloat(float64(*g.Duration), 'f', -1, 32)
+					modDetail.New_Value = &newValue
+				}
 				*eventDetails = append(*eventDetails, modDetail)
 				isModified = true;
-			} else if (g.Variation != val.Variation) {
+			} else if (isUnequalString(val.Variation, g.Variation)) {
 				modDetail := models.ModEventDetail{};
 				modDetail.Gym_Id = g.Group_Id
 				modDetail.Table_Name = "Group"
 				modDetail.Table_Column = "Variation"
 				modDetail.Action = "MODIFY"
-				oldValue := &val.Variation
-				modDetail.Old_Value = oldValue
-				newValue := &g.Variation
-				modDetail.New_Value = newValue
+				modDetail.Old_Value = val.Variation
+				modDetail.New_Value = g.Variation
 				*eventDetails = append(*eventDetails, modDetail)
 				isModified = true;
 			}
@@ -284,4 +317,38 @@ func (serv * EventService) FindGroupDifferences(currs [] models.Group, origins [
 		}
 	}
 	return modifyGroups
+}
+
+func isUnequalNilInt(ov *int, nv *int) bool {
+	if ov == nil && nv == nil {
+		return false;
+	} else if ov == nil && nv != nil {
+		return true;
+	} else if ov != nil && nv == nil {
+		return true;
+	} 
+	return *ov != *nv;
+
+}
+
+func isUnequalNilFloat32(ov *float32, nv *float32) bool {
+	if ov == nil && nv == nil {
+		return false;
+	} else if ov == nil && nv != nil {
+		return true;
+	} else if ov != nil && nv == nil {
+		return true;
+	} 
+	return *ov != *nv;
+}
+
+func isUnequalString(ov *string, nv *string) bool {
+	if ov == nil && nv == nil {
+		return false;
+	} else if ov == nil && nv != nil {
+		return true;
+	} else if ov != nil && nv == nil {
+		return true;
+	} 
+	return *ov != *nv;
 }
