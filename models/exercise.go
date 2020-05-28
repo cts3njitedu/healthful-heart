@@ -11,6 +11,12 @@ type Category struct {
 	Category_Name string `gorm:"column:CATEGORY_NAME"`
 }
 
+type SortedCategoryWorkoutType struct {
+	Category
+	WorkoutTypes []WorkoutType
+
+}
+
 const (
 	BACK = "BK"
 	ABS = "AB"

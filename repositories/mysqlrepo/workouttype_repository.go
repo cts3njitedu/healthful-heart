@@ -22,6 +22,6 @@ func (repo * WorkoutTypeRepository) GetWorkoutTypes() ([]models.WorkoutType, err
 	if err != nil {
 		panic(err.Error())
 	}
-	db.Table("WorkoutType").Find(&workTypes)
+	db.Table("WorkoutType").Order("name").Find(&workTypes)
 	return workTypes, nil;
 }

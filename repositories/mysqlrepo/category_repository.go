@@ -25,6 +25,6 @@ func (repo * CategoryRepository) GetCategories() ([]models.Category, error) {
 		panic(err.Error())
 	}
 
-	db.Table("Category").Find(&categories)
+	db.Table("Category").Order("CATEGORY_NAME").Find(&categories)
 	return categories, nil;
 }

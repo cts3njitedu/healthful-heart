@@ -253,7 +253,7 @@ func (serv *WorkoutService) GetWorkouts(heartRequest models.HeartRequest, cred m
 	}
 	workoutOptions.IsEqual = true
 	workouts, _ := serv.gymRepoService.GetWorkoutByParams(workoutOptions)
-	fmt.Printf("Workouts: %+v\n", workouts)
+	// fmt.Printf("Workouts: %+v\n", workouts)
 	categoriesAndWorkouts := serv.workoutTypeService.GetCategoriesAndWorkoutTypes();
 	_, categoryCdToName := serv.workoutTypeService.GetCategories();
 	newSectionInfos := Merge.FillWorkoutSection(workoutSection, heartRequest,categoryCdToName, categoriesAndWorkouts, workouts)
@@ -263,7 +263,9 @@ func (serv *WorkoutService) GetWorkouts(heartRequest models.HeartRequest, cred m
 		workoutMap[v.Workout_Type_Cd] = models.Workout{}
 	}
 
-	newWorkoutSection := Merge.FillNewWorkoutSection(workoutSection, heartRequest, categoryCdToName, categoriesAndWorkouts, workoutMap)
+	sortedCatAndWorkouts := serv.workoutTypeService.GetSortedCategoriesAndWorkoutTypes()
+	// fmt.Printf("Sorted Cats: %+v\n", sortedCatAndWorkouts)
+	newWorkoutSection := Merge.FillNewWorkoutSection(workoutSection, heartRequest, sortedCatAndWorkouts, workoutMap)
 	newSections := make([]models.Section, 0, 5);
 	newSections = append(newSections, newWorkoutSection)
 

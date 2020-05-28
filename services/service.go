@@ -49,6 +49,7 @@ type IWorkoutTypeService interface {
 	GetCategories() (map[string]string, map[string]string)
 	GetCategoriesAndWorkouts() (map[string]map[string]models.WorkoutType)
 	GetCategoriesAndWorkoutTypes() (map[string]map[string]string)
+	GetSortedCategoriesAndWorkoutTypes() ([]models.SortedCategoryWorkoutType)
 
 }
 

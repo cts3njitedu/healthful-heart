@@ -467,21 +467,24 @@ func FillCategoryNavigationSection(navigationSection models.Section, heartReques
 
 }
 
-func FillNewWorkoutSection(workoutSection models.Section, heartRequest models.HeartRequest,categories map[string]string, 
-			catWorkouts map[string]map[string]string, workouts map[string]models.Workout) (models.Section) {
+func FillNewWorkoutSection(workoutSection models.Section, heartRequest models.HeartRequest, catWorkouts []models.SortedCategoryWorkoutType, workouts map[string]models.Workout) (models.Section) {
 
-	items := make([]models.Item, 0, len(categories));
+	items := make([]models.Item, 0, 10);
 	
-	for catCode, workoutMap := range catWorkouts {
+	for _, catWorkout := range catWorkouts {
 		values := make(map[string]models.Item)
+		catCode := catWorkout.Category_Cd;
+		catName := catWorkout.Category_Name;
 		item := models.Item{};
 		item.Id = catCode;
-		item.Item = categories[catCode]
-		for workType, workout := range workoutMap {
+		item.Item = catName;
+		for _, wok := range catWorkout.WorkoutTypes {
+			workType := wok.Workout_Type_Cd;
+			workName := wok.Name
 			if _, ok := workouts[workType]; !ok {
 				values[workType] = models.Item{
 					Id: workType,
-					Item: workout,
+					Item: workName,
 				}
 			}
 		}

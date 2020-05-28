@@ -148,6 +148,9 @@ func (serv WorkoutTypeServiceMock) GetCategoriesAndWorkouts() (map[string]map[st
 func (serv WorkoutTypeServiceMock) GetCategoriesAndWorkoutTypes() (map[string]map[string]string) {
 	return nil
 }
+func (serv WorkoutTypeServiceMock) GetSortedCategoriesAndWorkoutTypes() ([]models.SortedCategoryWorkoutType) {
+	return nil
+}
 type WorkoutRepositoryMock struct {}
 
 func (repo WorkoutRepositoryMock) SaveWorkoutDay(workDay *models.WorkoutDay, tx *gorm.DB) error {

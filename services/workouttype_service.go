@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"errors"
 	"strings"
+	// "sort"
 )
 type WorkoutTypeService struct {
 	workoutTypeRepository mysqlrepo.IWorkoutTypeRepository
@@ -20,6 +21,7 @@ var categoryCdToName = make(map[string]string)
 
 var categoryNameToCd = make(map[string]string)
 
+var sortedCatAndWorkType = make([]models.SortedCategoryWorkoutType, 0 , 100)
 
 func NewWorkoutTypeService(workoutTypeRepository mysqlrepo.IWorkoutTypeRepository,
 	categoryRepository mysqlrepo.ICategoryRepository) *WorkoutTypeService {
@@ -28,8 +30,9 @@ func NewWorkoutTypeService(workoutTypeRepository mysqlrepo.IWorkoutTypeRepositor
 	if err != nil {
 		fmt.Println("Unable to pre load workout types")
 	}
-
+	sortedWorkoutsMap := make(map[string][]models.WorkoutType)
 	for _,workType := range workTypes {
+		sortedWorkoutsMap[workType.Category_Cd] = append(sortedWorkoutsMap[workType.Category_Cd], workType)
 		if catCodeMap[workType.Category_Cd] == nil {
 			workTypeNameMap := make(map[string]models.WorkoutType);
 			workTypeName := strings.ToUpper(workType.Name);
@@ -50,6 +53,7 @@ func NewWorkoutTypeService(workoutTypeRepository mysqlrepo.IWorkoutTypeRepositor
 		}
 	} 
 
+
 	categories, err := categoryRepository.GetCategories();
 
 	if err != nil {
@@ -57,6 +61,11 @@ func NewWorkoutTypeService(workoutTypeRepository mysqlrepo.IWorkoutTypeRepositor
 	}
 	fmt.Printf("Categories: %+v\n", categories)
 	for _,category := range categories {
+		catWorkSort := models.SortedCategoryWorkoutType{}
+		catWorkSort.Category_Cd = category.Category_Cd
+		catWorkSort.Category_Name = category.Category_Name
+		catWorkSort.WorkoutTypes = sortedWorkoutsMap[category.Category_Cd]
+		sortedCatAndWorkType = append(sortedCatAndWorkType, catWorkSort)
 		categoryCdToName[category.Category_Cd] = category.Category_Name
 		categoryNameToCd[category.Category_Name] = category.Category_Cd
 	}
@@ -134,6 +143,26 @@ func (serv *WorkoutTypeService) GetCategoriesAndWorkoutTypes() (map[string]map[s
 		newCatWorkoutMap[c] = newWorkoutMap
 	}
 	return newCatWorkoutMap
+}
+
+func (serv *WorkoutTypeService) GetSortedCategoriesAndWorkoutTypes() ([]models.SortedCategoryWorkoutType) {
+	newSorts := make([]models.SortedCategoryWorkoutType, 0, len(sortedCatAndWorkType))
+	for _, s := range sortedCatAndWorkType {
+		newSort := models.SortedCategoryWorkoutType{}
+		newSort.Category_Cd = s.Category_Cd;
+		newSort.Category_Name = s.Category_Name;
+		newTypes := make([]models.WorkoutType, 0, len(s.WorkoutTypes))
+		for _, wok := range s.WorkoutTypes {
+			newType := models.WorkoutType{}
+			newType.Workout_Type_Cd = wok.Workout_Type_Cd;
+			newType.Name = wok.Name;
+			newType.Category_Cd = wok.Category_Cd;
+			newTypes = append(newTypes, newType)
+		}
+		newSort.WorkoutTypes = newTypes;
+		newSorts = append(newSorts, newSort)
+	}
+	return newSorts
 }
 func getSubstring(s string, start int, end int) (string) {
 	runes := []rune(s)

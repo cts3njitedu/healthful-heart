@@ -13,7 +13,7 @@ type LocationService struct {
 var locationMap = make(map[int64]models.Location);
 func NewLocationService(locationRepository mysqlrepo.ILocationRepository) *LocationService {
 	locations, _ := locationRepository.GetLocations()
-	fmt.Printf("Locations: %+v", locations)
+	fmt.Printf("Locations: %+v\n", locations)
 	for _, location := range locations {
 		locationMap[location.Location_Id] = location;
 	}
