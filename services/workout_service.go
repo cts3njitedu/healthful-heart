@@ -93,7 +93,7 @@ func (serv * WorkoutService) GetWorkoutDaysLocationsView(heartRequest models.Hea
 	newSections = append(newSections, Util.CloneSection(cleanLocationHeaderSection))
 	locations := [] models.Location{}
 	
-	associatedIds := make(map[string]interface{});
+	
 
 	if heartRequest.ActionType == models.VIEW_WORKOUTDATE_LOCATIONS {
 		options := models.QueryOptions{};
@@ -128,7 +128,9 @@ func (serv * WorkoutService) GetWorkoutDaysLocationsView(heartRequest models.Hea
 				newLocation.Zipcode = wkLoc.Location.Zipcode;
 				newLocation.Location = wkLoc.Location.Location
 				newLocation.Workout_Day_Version_Nb = wkLoc.Version_Nb
+				newLocation.Workout_Day_Id =  wkLoc.Workout_Day_Id
 				locations = append(locations, newLocation)
+				
 			}
 		}
 		
@@ -145,9 +147,8 @@ func (serv * WorkoutService) GetWorkoutDaysLocationsView(heartRequest models.Hea
 		locationOptions.NotIn = workoutQueryMap
 		locations, _ = serv.gymRepoService.GetLocationsQueryParams(locationOptions)
 	}
-	
-	
-	locationSectionInfos := Merge.FillLocationSection(locationSection, locations, heartRequest,associatedIds);
+
+	locationSectionInfos := Merge.FillLocationSection(locationSection, locations, heartRequest);
 	totalLength = len(locationSectionInfos) + 5;
 	
 

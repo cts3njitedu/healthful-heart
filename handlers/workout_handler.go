@@ -64,7 +64,13 @@ func (handler *WorkoutHandler) WorkoutDaysActions(w http.ResponseWriter, r *http
 	err := json.NewDecoder(r.Body).Decode(&heartRequest)
 	
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		fmt.Printf("Heart Request Error: %+v\n", err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		heartResponse := models.HeartResponse{};
+		heartResponse.IsSuccessful = false
+		heartResponse.Message = "Invalid Request"
+
+		json.NewEncoder(w).Encode(heartResponse)
 		return
 	}
 	heartRequest.Date = vars["date"]

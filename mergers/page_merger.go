@@ -418,10 +418,12 @@ func FillFilterSection(filterSection models.Section, locationSection models.Sect
 	return filterSectionInfo, cleanFilterSection;
 }
 
-func FillLocationSection(locationSection models.Section, locations []models.Location, heartRequest models.HeartRequest, associatedIds map[string]interface{}) ([]models.SectionInfo) {
+func FillLocationSection(locationSection models.Section, locations []models.Location, heartRequest models.HeartRequest) ([]models.SectionInfo) {
 	fmt.Printf("Locations: %+v\n", locations)
 	newSectionInfos := make([]models.SectionInfo, 0, len(locations))
 	for _, loc := range locations {
+		associatedIds := make(map[string]interface{})
+		associatedIds["workoutDayId"] = loc.Workout_Day_Id
 		newSectionInfo := models.SectionInfo{}
 		newSection := Util.CloneSection(locationSection)
 		newSection = MergeLocationToSection(newSection, loc)
