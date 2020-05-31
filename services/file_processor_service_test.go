@@ -15,6 +15,7 @@ import (
     // "os"
 )
 
+
 type WorkfileRepositoryMock struct {}
 
 func (workRepo WorkfileRepositoryMock) StoreWorkoutFile(file multipart.File, fileHeader * multipart.FileHeader, newFile models.WorkoutFile) (int, error) {
@@ -35,75 +36,19 @@ func (repo FileRepositoryMock) UpdateFileStatus(file *models.WorkoutFile, newSta
 	return models.WorkoutFile{}, nil
 }
 
+type PageRepositoryMock struct {}
+
+func (repo PageRepositoryMock) GetPage(pageType string) models.Page {
+	return models.Page{}
+}
 type WorkoutTypeServiceMock struct {}
 
-func (serv WorkoutTypeServiceMock) GetWorkoutTypeCode(categoryCd string, workoutTypeName string) string {
-	if categoryCd == "AB" && workoutTypeName == "Abdominal" {
-		return "AB2"
-	}
-	if categoryCd == "AB" && workoutTypeName == "Leg raises" {
-		return "AB5"
-	}
-	if categoryCd == "BC" && workoutTypeName == "Barbell rubber zig 3 moves" {
-		return "BC1"
-	}
-	if categoryCd == "BC" && workoutTypeName == "Seated bicep curls" {
-		return "BC14"
-	}
-	if categoryCd == "BC" && workoutTypeName == "Zodiac curls" {
-		return "BC19"
-	}
-	if categoryCd == "BK" && workoutTypeName == "Pull ups" {
-		return "BK16"
-	}
-	if categoryCd == "BK" && workoutTypeName == "Lower back" {
-		return "BK10"
-	}
-	if categoryCd == "BK" && workoutTypeName == "Machine fly" {
-		return "BK12"
-	}
-	if categoryCd == "CH" && workoutTypeName == "Dip" {
-		return "CH5"
-	}
-	if categoryCd == "CH" && workoutTypeName == "Cable cross over" {
-		return "CH2"
-	}
-	if categoryCd == "CH" && workoutTypeName == "Bench Barbell" {
-		return "CH1"
-	}
-	if categoryCd == "CH" && workoutTypeName == "Pectoral fly" {
-		return "CH14"
-	}
-	if categoryCd == "CH" && workoutTypeName == "Incline dumbell" {
-		return "CH8"
-	}
-	if categoryCd == "LG" && workoutTypeName == "Leg curl" {
-		return "LG4"
-	}
-	if categoryCd == "LG" && workoutTypeName == "Leg push" {
-		return "LG6"
-	}
-	if categoryCd == "SH" && workoutTypeName == "Sitting shoulder press machine" {
-		return "SH12"
-	}
-	if categoryCd == "SH" && workoutTypeName == "Twist" {
-		return "SH16"
-	}
-	if categoryCd == "SH" && workoutTypeName == "Shoulder free weights" {
-		return "SH8"
-	}
-	if categoryCd == "TR" && workoutTypeName == "Curl bar cable" {
-		return "TR1"
-	}
-	if categoryCd == "TR" && workoutTypeName == "One hand lean over" {
-		return "TR4"
-	}
-	if categoryCd == "TR" && workoutTypeName == "Sitting dips" {
-		return "TR8"
-	}
-	return ""
-
-
+func (serv WorkoutTypeServiceMock) GetWorkoutType(categoryCd string, workoutTypeName string) (models.WorkoutType, error) {
+	return models.WorkoutType{
+		Workout_Type_Id: 1,
+		Workout_Type_Desc: workoutTypeName,
+		Category_Cd : categoryCd,
+	}, nil
 }
 func (serv WorkoutTypeServiceMock) GetCategoryCodeFromName(categoryName string) (string, error){
 	m := map[string]string {
@@ -138,17 +83,36 @@ func (serv WorkoutTypeServiceMock) GetCategoryNameFromCode(categoryCd string) (s
 	return "", errors.New("doesn't exist")
 }
 func (serv WorkoutTypeServiceMock) GetCategories() (map[string]string, map[string]string) {
-	return nil, nil
+	m := map[string]string {
+		"Abs" : "AB",
+		"Biceps" : "BC",
+		"Back" : "BK",
+		"Chest" : "CH",
+		"Default" : "DF",
+		"Legs" : "LG",
+		"Shoulders" : "SH",
+		"Triceps" : "TR",
+	}
+	n := map[string]string {
+		"Abs" : "AB",
+		"Biceps" : "BC",
+		"Back" : "BK",
+		"Chest" : "CH",
+		"Default" : "DF",
+		"Legs" : "LG",
+		"Shoulders" : "SH",
+		"Triceps" : "TR",
+	}
+	return m, n
 }
 
-func (serv WorkoutTypeServiceMock) GetCategoriesAndWorkouts() (map[string]map[string]models.WorkoutType) {
-	return nil
-}
-
-func (serv WorkoutTypeServiceMock) GetCategoriesAndWorkoutTypes() (map[string]map[string]string) {
+func (serv WorkoutTypeServiceMock) GetCategoriesAndWorkoutsMap(catCode string) (map[string]map[int64]models.WorkoutType) {
 	return nil
 }
 func (serv WorkoutTypeServiceMock) GetSortedCategoriesAndWorkoutTypes() ([]models.SortedCategoryWorkoutType) {
+	return nil
+}
+func (serv WorkoutTypeServiceMock) GetWorkoutTypeByIds(ids []int64) (map[int64]models.WorkoutType) {
 	return nil
 }
 type WorkoutRepositoryMock struct {}
@@ -192,7 +156,8 @@ func TestConvertFileToWorkDayMap(t *testing.T) {
 		fileMock := FileRepositoryMock{}
 		workDayRepo := WorkoutRepositoryMock{}
 		service :=  services.NewGroupParserService()
-		fileProcServ := services.NewFileProcessorService(workFileRepo,fileMock,workTypeServ, service, workDayRepo)
+		pageRepo := PageRepositoryMock{}
+		fileProcServ := services.NewFileProcessorService(workFileRepo,fileMock,workTypeServ, service, workDayRepo, pageRepo)
 		excelFile, err := excelize.OpenFile("WorkoutLogTest.xlsx")
 		if err != nil {
 			fmt.Println(err)

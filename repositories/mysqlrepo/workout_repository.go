@@ -11,7 +11,7 @@ import (
 )
 
 
-const SQL_QUERY_WORKOUT string = "workout_day_id = ? AND workout_type_cd = ?"
+const SQL_QUERY_WORKOUT string = "workout_day_id = ? AND workout_type_id = ?"
 type WorkoutRepository struct {
 	connection connections.IMysqlConnection
 	groupRepo IGroupRepository
@@ -41,7 +41,7 @@ func (repo *WorkoutRepository) GetWorkoutByParams(queryOptions models.QueryOptio
 	columns := map[string]models.QueryOptions {
 		"workout_day_id" : models.QueryOptions{},
 		"workout_id" : models.QueryOptions{},
-		"workout_type_cd" : models.QueryOptions{},
+		"workout_type_id" : models.QueryOptions{},
 		"cre_ts" : models.QueryOptions{},
 		"mod_ts" : models.QueryOptions{},
 		"del_ts" : models.QueryOptions{},
@@ -80,7 +80,7 @@ func (repo * WorkoutRepository) SaveWorkout(workDay *models.Workout, tx *gorm.DB
 	}()
 
 
-	tx.Table("Workout").Where(SQL_QUERY_WORKOUT, workDay.Workout_Day_Id, workDay.Workout_Type_Cd).
+	tx.Table("Workout").Where(SQL_QUERY_WORKOUT, workDay.Workout_Day_Id, workDay.Workout_Type_Id).
 	First(&workoutQuery);
 	
 	if workDay.Workout_Id != 0 {
@@ -97,7 +97,7 @@ func (repo * WorkoutRepository) SaveWorkout(workDay *models.Workout, tx *gorm.DB
 		workDay.Workout_Id = workoutQuery.Workout_Id
 		ret := tx.Table("Workout").
 			Where("workout_id = ? AND version_nb = ?",workDay.Workout_Id, workoutQuery.Version_Nb).
-			Updates(map[string]interface{}{"mod_ts": time.Now(), "version_nb": workoutQuery.Version_Nb + 1, "workout_type_cd": workoutQuery.Workout_Type_Cd});
+			Updates(map[string]interface{}{"mod_ts": time.Now(), "version_nb": workoutQuery.Version_Nb + 1, "workout_type_id": workoutQuery.Workout_Type_Id});
 		fmt.Printf("Rows affected: %d, Workout Id: %d\n",ret.RowsAffected,workDay.Workout_Id)
 		if (ret.RowsAffected == 0) {
 			tx.Rollback()

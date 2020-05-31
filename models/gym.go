@@ -24,7 +24,7 @@ type WorkoutDay struct {
 type Workout struct {
 	Workout_Id int64 `gorm:"column:WORKOUT_ID;primary_key;not null; auto_increment"`
 	Workout_Day_Id int64 `gorm:"column:WORKOUT_DAY_ID"`
-	Workout_Type_Cd string `gorm:"column:WORKOUT_TYPE_CD"`
+	Workout_Type_Id int64 `gorm:"column:WORKOUT_TYPE_ID"`
 	Workout_Name string `gorm:"-"`
 	Cre_Ts *string `gorm:"column:CRE_TS"`
 	Mod_Ts *string `gorm:"column:MOD_TS"`

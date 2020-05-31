@@ -1,9 +1,9 @@
 package models
 
 type WorkoutType struct {
-	Name string `gorm:"column:NAME"`
+	Workout_Type_Desc string `gorm:"column:WORKOUT_TYPE_DESC"`
 	Category_Cd string `gorm:"column:CATEGORY_CD"`
-	Workout_Type_Cd string `gorm:"column:WORKOUT_TYPE_CD"`
+	Workout_Type_Id int64 `gorm:"column:WORKOUT_TYPE_ID"`
 }
 
 type Category struct {
@@ -26,12 +26,12 @@ const (
 	BICEPS = "BC"
 	SHOULDERS = "SH"
 	DEFAULT = "DF"
-	PULLUPS = "BK16"
-	DIPS = "CH5"
-	BICYCLE = "AB3"
-	LEG_RAISES = "AB5"
-	SITUPS = "AB6"
-	INCLINE_ABS = "AB4"
+	PULLUPS = "Pull ups"
+	DIPS = "Dips"
+	BICYCLE = "Bicycle"
+	LEG_RAISES = "Leg Raises"
+	SITUPS = "Situps"
+	INCLINE_ABS = "Incline Abs"
 )
 
 

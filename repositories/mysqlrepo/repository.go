@@ -23,11 +23,13 @@ type IFileRepository interface {
 }
 
 type IWorkoutTypeRepository interface {
-	GetWorkoutTypes() ([]models.WorkoutType, error)
+	GetWorkoutTypes(queryOptions models.QueryOptions) ([]models.WorkoutType, error)
 }
 
 type ICategoryRepository interface {
 	GetCategories() ([]models.Category, error) 
+	GetCategoriesByParams(queryOptions models.QueryOptions) ([]models.Category, error)
+	GetCategoriesAndWorkoutTypes(queryOptions models.QueryOptions) ([]models.Category, error)
 }
 
 type IWorkoutDayRepository interface {

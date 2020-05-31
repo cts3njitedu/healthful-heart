@@ -30,6 +30,7 @@ func main() {
 	validateTokenHandler := factories.GetTokenHandler().ValidateToken;
 	uploadFile := http.HandlerFunc(factories.GetFileHandler().UploadFile);
 	getWorkoutDays := http.HandlerFunc(factories.GetWorkoutHandler().GetWorkoutDays);
+	workType := http.HandlerFunc(factories.GetWorkoutTypeHandler().GetCategories)
 	preChain := alice.New(handlers.Logging, validateTokenHandler);
 	workoutDaysRoutes(r, "/workoutDays", preChain)
 	r.Handle("/upload", alice.New(handlers.Logging, validateTokenHandler).Then(uploadFile)).Methods("POST")
@@ -39,7 +40,7 @@ func main() {
 	r.Handle("/login", alice.New(handlers.Logging, postLoginPage).Then(tokenHandler)).Methods("POST");
 	r.Handle("/signup", alice.New(handlers.Logging).Then(getSignupPage)).Methods("GET");
 	r.Handle("/signup", alice.New(handlers.Logging,postSignupPage).Then(tokenHandler)).Methods("POST");
-	
+	r.Handle("/workoutType", alice.New(handlers.Logging).Then(workType)).Methods("GET","POST")
 	r.HandleFunc("/", index)
 	http.Handle("/", r);
 	fmt.Println("Server Starting...")

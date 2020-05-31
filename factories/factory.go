@@ -92,7 +92,7 @@ func init() {
 	workoutTypeService = services.NewWorkoutTypeService(workoutTypeRepository,categoryRepository)
 	eventService = services.NewEventService();
 	workoutService = services.NewWorkoutService(locationService, pageRepository, workoutTypeService, mapperUtil, gymRepoService, eventService)
-	fileProcessorService = services.NewFileProcessorService(workoutRepository, fileRepository, workoutTypeService, groupParserService,workoutDayRepository)
+	fileProcessorService = services.NewFileProcessorService(workoutRepository, fileRepository, workoutTypeService, groupParserService,workoutDayRepository, pageRepository)
 	rabbitService = services.NewRabbitService(rabbitConnection, environmentUtiliy, fileProcessorService)
 	authenticationService = services.NewAuthenticationService(pageRepository, restructureService, enricherExecutor)
 	workflowService = services.NewWorkflowService(pageValidator, pageRepository, mapperUtil,enricherExecutor , credentialEnricher)
@@ -128,4 +128,8 @@ func GetFileHandler() *handlers.FileHandler {
 
 func GetWorkoutHandler() *handlers.WorkoutHandler {
 	return handlers.NewWorkoutHandler(workoutService)
+}
+
+func GetWorkoutTypeHandler() *handlers.WorkoutTypeHandler {
+	return handlers.NewWorkoutTypeHandler(workoutTypeService)
 }

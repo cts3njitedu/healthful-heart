@@ -240,7 +240,7 @@ func (serv *WorkoutService) GetWorkouts(heartRequest models.HeartRequest, cred m
 	workoutSection := Util.FindSection("WORKOUT_SECTION", dbPage);
 
 	workoutOptions := models.QueryOptions{}
-	selectClause := []string{"Workout_Type_Cd", "Workout_Id", "Workout_Day_Id", "Version_Nb"};
+	selectClause := []string{"Workout_Type_Id", "Workout_Id", "Workout_Day_Id", "Version_Nb"};
 	workoutOptions.Select = selectClause
 
 	workoutOptions.Where = map[string]interface{} {
@@ -255,13 +255,17 @@ func (serv *WorkoutService) GetWorkouts(heartRequest models.HeartRequest, cred m
 	workoutOptions.IsEqual = true
 	workouts, _ := serv.gymRepoService.GetWorkoutByParams(workoutOptions)
 	// fmt.Printf("Workouts: %+v\n", workouts)
-	categoriesAndWorkouts := serv.workoutTypeService.GetCategoriesAndWorkoutTypes();
+	typeIds := make([]int64, 0, len(workouts))
+	for _, wk := range workouts {
+		typeIds = append(typeIds, wk.Workout_Type_Id)
+	}
+	categoriesAndWorkouts := serv.workoutTypeService.GetWorkoutTypeByIds(typeIds);
 	_, categoryCdToName := serv.workoutTypeService.GetCategories();
 	newSectionInfos := Merge.FillWorkoutSection(workoutSection, heartRequest,categoryCdToName, categoriesAndWorkouts, workouts)
 
-	workoutMap := make(map[string]models.Workout)
+	workoutMap := make(map[int64]models.Workout)
 	for _, v := range workouts {
-		workoutMap[v.Workout_Type_Cd] = models.Workout{}
+		workoutMap[v.Workout_Type_Id] = models.Workout{}
 	}
 
 	sortedCatAndWorkouts := serv.workoutTypeService.GetSortedCategoriesAndWorkoutTypes()
@@ -356,7 +360,7 @@ func (serv * WorkoutService) GetWorkoutDetails(heartRequest models.HeartRequest,
 	newSections := make([]models.Section, 0, 5);
 
 	workoutOptions := models.QueryOptions{}
-	selectClause := []string{"Workout_Type_Cd", "Workout_Id", "Workout_Day_Id", "Version_Nb"};
+	selectClause := []string{"Workout_Type_Id", "Workout_Id", "Workout_Day_Id", "Version_Nb"};
 	workoutOptions.Select = selectClause
 
 	workoutOptions.Where = map[string]interface{} {
@@ -368,7 +372,11 @@ func (serv * WorkoutService) GetWorkoutDetails(heartRequest models.HeartRequest,
 	workoutOptions.IsEqual = true
 	workouts, _ := serv.gymRepoService.GetWorkoutByParams(workoutOptions)
 	fmt.Printf("Workouts: %+v\n", workouts)
-	categoriesAndWorkouts := serv.workoutTypeService.GetCategoriesAndWorkoutTypes();
+	typeIds := make([]int64, 0, len(workouts))
+	for _, wk := range workouts {
+		typeIds = append(typeIds, wk.Workout_Type_Id)
+	}
+	categoriesAndWorkouts := serv.workoutTypeService.GetWorkoutTypeByIds(typeIds);
 	_, categoryCdToName := serv.workoutTypeService.GetCategories();
 	
 	newSectionInfos := make([]models.SectionInfo, 0, 5);
@@ -378,6 +386,9 @@ func (serv * WorkoutService) GetWorkoutDetails(heartRequest models.HeartRequest,
 	groupOptions := models.QueryOptions{}
 	groupOptions.Where = map[string]interface{} {
 		"Workout_Id" : heartRequest.WorkoutId,
+	}
+	groupOptions.WhereEqual = map[string]bool {
+		"Workout_Id" : true,
 	}
 	groupOptions.IsEqual = true;
 	groups, _ := serv.gymRepoService.GetGroupByParams(groupOptions);
@@ -441,7 +452,6 @@ func (serv * WorkoutService) ActionWorkoutDay(heartRequest models.HeartRequest, 
 		actionMap[section.Id] = fieldMap;
 	}
 	var isError bool = false;
-	categoriesAndWorkouts := serv.workoutTypeService.GetCategoriesAndWorkoutTypes();
 	_, categoryCdToName := serv.workoutTypeService.GetCategories();
 	for w := range heartRequest.WorkoutDays {
 		workoutDay := &heartRequest.WorkoutDays[w]
@@ -450,8 +460,28 @@ func (serv * WorkoutService) ActionWorkoutDay(heartRequest models.HeartRequest, 
 		isError = isError || isFieldErrors
 		for wd := range workoutDay.Workouts {
 			workout := &workoutDay.Workouts[wd];
-			// fmt.Printf("WorkoutField: %+v\n", workout.Fields)
-			Merge.FillCategoryAndWorkoutType(categoriesAndWorkouts, categoryCdToName, workout.Fields)
+			fields := workout.Fields
+			var wkTypeId int64;
+			for f := range fields {
+				field := &fields[f];
+				if field.Name == "workoutTypeDesc" {
+					if field.Value == nil {
+						wkTypeId = 0;
+					} else {
+						wkTypeId, _ = strconv.ParseInt(*field.Value, 10, 64)
+					}
+				}
+			}
+			wkType := serv.workoutTypeService.GetWorkoutTypeByIds([]int64{wkTypeId});
+			// if len(wkType) == 0 {
+			// 	heartResponse := models.HeartResponse{};
+			// 	heartResponse.SubActionType = heartRequest.SubActionType;
+			// 	fmt.Printf("Something went wrong here: %v\n", wkTypeId)
+			// 	heartResponse,err := addError(heartRequest.ActionType)
+			// 	heartResponse.SubActionType = heartRequest.SubActionType;
+			// 	return heartResponse, err
+			// }
+			Merge.FillCategoryAndWorkoutType(wkType[wkTypeId], categoryCdToName, workout.Fields)
 			workoutFields, isFieldErrors := enrichField(actionMap, "WORKOUTS_ACTION_PAGE.WORKOUT_SECTION", workout.Fields, workout.IsDeleted);
 			workout.Fields = workoutFields;
 			isError = isError || isFieldErrors;

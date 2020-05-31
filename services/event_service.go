@@ -166,16 +166,18 @@ func (serv * EventService) FindWorkoutsDifferences(currs [] models.Workout, orig
 		isModified := false;
 		
 		if val, ok := wMap[wk.Workout_Id]; ok {
-			if (wk.Workout_Type_Cd != val.Workout_Type_Cd) {
+			if (isUnequalZeroInt64(val.Workout_Type_Id, wk.Workout_Type_Id)) {
 				modDetail := models.ModEventDetail{};
 				modDetail.Gym_Id = wk.Workout_Id
 				modDetail.Table_Name = "Workout"
-				modDetail.Table_Column = "Workout_Type_Cd"
+				modDetail.Table_Column = "Workout_Type_Id"
 				modDetail.Action = "MODIFY"
-				oldValue := &val.Workout_Type_Cd
-				modDetail.Old_Value = oldValue
-				newValue := &wk.Workout_Type_Cd
-				modDetail.New_Value = newValue
+			
+				oldValue := strconv.FormatInt(int64(val.Workout_Type_Id), 10)
+				modDetail.Old_Value = &oldValue
+				newValue := strconv.FormatInt(int64(wk.Workout_Type_Id), 10)
+				modDetail.New_Value = &newValue
+			
 				*eventDetails = append(*eventDetails, modDetail)
 				isModified = true;
 			}
@@ -328,6 +330,18 @@ func isUnequalNilInt(ov *int, nv *int) bool {
 		return true;
 	} 
 	return *ov != *nv;
+
+}
+
+func isUnequalZeroInt64(ov int64, nv int64) bool {
+	if ov == 0 && nv == 0 {
+		return false;
+	} else if ov == 0 && nv != 0 {
+		return true;
+	} else if ov != 0 && nv == 0 {
+		return true;
+	} 
+	return ov != nv;
 
 }
 

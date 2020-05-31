@@ -469,7 +469,7 @@ func FillCategoryNavigationSection(navigationSection models.Section, heartReques
 
 }
 
-func FillNewWorkoutSection(workoutSection models.Section, heartRequest models.HeartRequest, catWorkouts []models.SortedCategoryWorkoutType, workouts map[string]models.Workout) (models.Section) {
+func FillNewWorkoutSection(workoutSection models.Section, heartRequest models.HeartRequest, catWorkouts []models.SortedCategoryWorkoutType, workouts map[int64]models.Workout) (models.Section) {
 
 	items := make([]models.Item, 0, 10);
 	
@@ -481,15 +481,17 @@ func FillNewWorkoutSection(workoutSection models.Section, heartRequest models.He
 		item.Id = catCode;
 		item.Item = catName;
 		for _, wok := range catWorkout.WorkoutTypes {
-			workType := wok.Workout_Type_Cd;
-			workName := wok.Name
+			workType := wok.Workout_Type_Id;
+			workName := wok.Workout_Type_Desc;
 			if _, ok := workouts[workType]; !ok {
-				values[workType] = models.Item{
-					Id: workType,
+				val := strconv.FormatInt(workType, 10)
+				values[val] = models.Item{
+					Id: val,
 					Item: workName,
 				}
 			}
 		}
+		fmt.Printf("Sorted is my Friend:%+v\n", values)
 		if (len(values) > 0) {
 			item.Values = values;
 			items = append(items, item)
@@ -508,7 +510,7 @@ func FillNewWorkoutSection(workoutSection models.Section, heartRequest models.He
 }
 
 func FillWorkoutSection(workoutSection models.Section, heartRequest models.HeartRequest,categories map[string]string, 
-	catWorkouts map[string]map[string]string, workouts []models.Workout) ([]models.SectionInfo) {
+	catWorkouts map[int64]models.WorkoutType, workouts []models.Workout) ([]models.SectionInfo) {
 	
 	newSectionInfos := make([]models.SectionInfo, 0, len(workouts));
 	for _, workout := range workouts {
@@ -516,19 +518,12 @@ func FillWorkoutSection(workoutSection models.Section, heartRequest models.Heart
 		sectionMetaData := models.SectionMetaData{};
 		sectionMetaData.Id = strconv.FormatInt(workout.Workout_Id,10)
 		sectionMetaData.VersionNb = workout.Version_Nb
-		workType := workout.Workout_Type_Cd;
-		var catCode string;
-		var workoutName string;
-		var catName string;
-		for c, v := range catWorkouts {
-			if wc, ok := v[workType]; ok {
-				catCode = c;
-				workoutName = wc
-				catName = categories[c]
-				break;
-			}
-		}
-
+		workType := catWorkouts[workout.Workout_Type_Id];
+		catCode := workType.Category_Cd;
+		workoutName := workType.Workout_Type_Desc;
+		catName := categories[catCode]
+		workTypeId := workType.Workout_Type_Id
+		workTypeIdP := Util.ConvertToStringPointer(workTypeId)
 		catItem := models.Item{}
 		catItem.Id = catCode;
 		catItem.Item = catName;
@@ -536,7 +531,7 @@ func FillWorkoutSection(workoutSection models.Section, heartRequest models.Heart
 		catItems = append(catItems, catItem)
 
 		workItem := models.Item{}
-		workItem.Id = workType
+		workItem.Id = *workTypeIdP
 		workItem.Item = workoutName;
 		workItems := make([]models.Item, 0, 1)
 		workItems = append(workItems, workItem)
@@ -547,7 +542,7 @@ func FillWorkoutSection(workoutSection models.Section, heartRequest models.Heart
 				field.Value = &catCode;
 				field.Items = catItems;
 			} else if field.FieldId == "WORKOUT_TYPE_DESC" {
-				field.Value = &workType
+				field.Value = workTypeIdP
 				field.Items = workItems;
 			}
 		}
@@ -559,36 +554,22 @@ func FillWorkoutSection(workoutSection models.Section, heartRequest models.Heart
 	return newSectionInfos
 }
 
-func FillCategoryAndWorkoutType(catWorkouts map[string]map[string]string, categories map[string]string, fields []models.Field) {
-	var catCode string;
-	var workoutType string;
-	for f := range fields {
-		field := &fields[f];
-		if (field.Name == "categoryName") {
-			catCode = *field.Value;
-		} else if field.Name == "workoutTypeDesc" {
-			workoutType = *field.Value;
-		}
-	}
-	fmt.Printf("Category: %s, Workout %s\n", catCode, workoutType)
+func FillCategoryAndWorkoutType(workType models.WorkoutType, categories map[string]string, fields []models.Field) {
+	fmt.Printf("Category: %s, Workout %s\n", workType.Category_Cd, workType.Workout_Type_Desc)
 	for f := range fields {
 		field := &fields[f];
 		if (field.Name == "categoryName") {
 			catItem := models.Item{}
-			catItem.Id = catCode;
-			catItem.Item = categories[catCode];
+			catItem.Id = workType.Category_Cd;
+			catItem.Item = categories[workType.Category_Cd];
 			catItems := make([]models.Item, 0, 1);
 			catItems = append(catItems, catItem)
 			field.Items = catItems
 		} else if field.Name == "workoutTypeDesc" {
-			var workoutTypeDesc string
-			workoutTypeMap := catWorkouts[catCode];
-			if workoutTypeMap != nil {
-				workoutTypeDesc = workoutTypeMap[workoutType]
-			}
 			workItem := models.Item{}
-			workItem.Id = workoutType
-			workItem.Item = workoutTypeDesc;
+			val := Util.ConvertToStringPointer(workType.Workout_Type_Id)
+			workItem.Id = *val
+			workItem.Item = workType.Workout_Type_Desc;
 			workItems := make([]models.Item, 0, 1)
 			workItems = append(workItems, workItem)
 			field.Items = workItems

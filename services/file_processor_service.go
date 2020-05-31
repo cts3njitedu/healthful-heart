@@ -19,14 +19,15 @@ type FileProcessorService struct {
 	workoutTypeService IWorkoutTypeService
 	groupParserService IGroupParserService
 	workoutDayRepository mysqlrepo.IWorkoutDayRepository
+	pageRepository mongorepo.IPageRepository
 }
 
 func NewFileProcessorService(workFile mongorepo.IWorkfileRepository,
 	fileRepository mysqlrepo.IFileRepository,
 	workoutTypeService IWorkoutTypeService,
-	groupParserService IGroupParserService, workoutDayRepository mysqlrepo.IWorkoutDayRepository) *FileProcessorService {
+	groupParserService IGroupParserService, workoutDayRepository mysqlrepo.IWorkoutDayRepository, pageRepository mongorepo.IPageRepository) *FileProcessorService {
 
-		return &FileProcessorService{workFile, fileRepository, workoutTypeService, groupParserService, workoutDayRepository}
+		return &FileProcessorService{workFile, fileRepository, workoutTypeService, groupParserService, workoutDayRepository, pageRepository}
 }
 
 func (process *FileProcessorService) ProcessWorkoutFile(file models.WorkoutFile) (error) {
@@ -79,8 +80,9 @@ func ConvertFileToWorkoutDay(excelFile *excelize.File, metaData models.WorkoutFi
 	rows := excelFile.GetRows("Sheet1")
 	workoutMap := make(map[int]*models.WorkoutDay)
 	var categoryCdState string
-	var workoutType string
+	var workoutType int64
 	var workoutName string
+	categoryNameToCd, _ := process.workoutTypeService.GetCategories();
     for r, row := range rows {
 	
         for c, colCell := range row {
@@ -104,16 +106,15 @@ func ConvertFileToWorkoutDay(excelFile *excelize.File, metaData models.WorkoutFi
 				workoutMap[c] = workoutDay
 			} else if r>0 && c==0 {
 				fmt.Printf("Row Value: %+v, Cell Value: %+v\n",r, cellValue)
-				categoryCd, err := process.workoutTypeService.GetCategoryCodeFromName(cellValue)
-				if err == nil {
+				if categoryCd, ok := categoryNameToCd[cellValue]; ok {
 					categoryCdState = categoryCd
-					fmt.Printf("Category Code State: %v\n", categoryCdState);
+					fmt.Printf("Category Code: %v\n", categoryCdState)
 				} else {
-					workoutType = process.workoutTypeService.GetWorkoutTypeCode(categoryCdState, cellValue)
-					if len(workoutType) == 0 {
-						fmt.Printf("Missing work type code: %v", cellValue)
+					wkType, err := process.workoutTypeService.GetWorkoutType(categoryCdState, cellValue) 
+					workoutType = wkType.Workout_Type_Id;
+					if workoutType == 0 || err != nil {
+						fmt.Printf("Missing work type code: %v\n", cellValue)
 					}
-					workoutType = strings.TrimSpace(workoutType)
 					workoutName = cellValue
 					fmt.Printf("Category: %v WorkoutType: %v\n", categoryCdState, workoutType)
 				}
@@ -123,9 +124,9 @@ func ConvertFileToWorkoutDay(excelFile *excelize.File, metaData models.WorkoutFi
 					if workoutDay == nil {
 						continue;
 					}
-					groups := process.groupParserService.GetGroups(workoutType, cellValue, categoryCdState)
+					groups := process.groupParserService.GetGroups(workoutName, cellValue, categoryCdState)
 					newWorkout := models.Workout {
-						Workout_Type_Cd: workoutType,
+						Workout_Type_Id: workoutType,
 						Workout_Name: workoutName,
 						Groups: groups,
 					}

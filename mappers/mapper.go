@@ -130,8 +130,9 @@ func (mapper *Mapper) MapWorkoutDayRequestToWorkoutDay(heartRequest models.Heart
 			workout.Version_Nb, _ = strconv.ParseInt(wk.Version_Nb, 10, 64)
 			for f := range wk.Fields {
 				field := wk.Fields[f]
+
 				if (field.FieldId == "WORKOUT_TYPE_DESC") {
-					workout.Workout_Type_Cd = *field.Value
+					workout.Workout_Type_Id, _ = strconv.ParseInt(*field.Value, 10, 64)
 				}
 			}
 

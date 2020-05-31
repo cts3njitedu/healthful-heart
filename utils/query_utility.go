@@ -77,7 +77,7 @@ func WhereQuery(queryOptions models.QueryOptions) ([]string, []interface{}) {
 				} 
 			} else {
 				whereValues = append(whereValues, v)
-				whereQuery = append(whereQuery, fmt.Sprintf("%s = ?", k))
+				whereQuery = append(whereQuery, fmt.Sprintf("UPPER(%s) = UPPER(?)", k))
 			}
 		}
 	}

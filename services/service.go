@@ -43,13 +43,13 @@ type IGroupParserService interface {
 }
 
 type IWorkoutTypeService interface {
-	GetWorkoutTypeCode(categoryCd string, workoutTypeName string) string
+	GetWorkoutType(categoryCd string, workoutTypeName string) (models.WorkoutType, error)
 	GetCategoryNameFromCode(categoryCd string) (string, error)
 	GetCategoryCodeFromName(categoryName string) (string, error)
 	GetCategories() (map[string]string, map[string]string)
-	GetCategoriesAndWorkouts() (map[string]map[string]models.WorkoutType)
-	GetCategoriesAndWorkoutTypes() (map[string]map[string]string)
+	GetCategoriesAndWorkoutsMap(catCode string) (map[string]map[int64]models.WorkoutType)
 	GetSortedCategoriesAndWorkoutTypes() ([]models.SortedCategoryWorkoutType)
+	GetWorkoutTypeByIds(ids []int64) (map[int64]models.WorkoutType)
 
 }
 
