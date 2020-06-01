@@ -53,7 +53,7 @@ func (handler *LoginHandler) PostLoginPage(next http.Handler) http.Handler {
 		if err != nil {
 
 			
-			
+			fmt.Printf("Login Error: %T\n", err)
 			switch err.(type) {
 			case *validators.ValidationError:
 				w.WriteHeader(http.StatusBadRequest)
